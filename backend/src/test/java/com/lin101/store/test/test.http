@@ -1,0 +1,22 @@
+### 1. 测试发送验证码 (GET 请求)
+GET http://localhost:8080/api/auth/sendCode?phone=15839816471
+Accept: application/json
+
+### 2. 测试登录与静默注册 (POST 请求)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "phone": "15839816471",
+  "code": "799202"
+}
+
+### 3. 测试更新用户资料 (POST 请求)
+POST http://localhost:8080/api/user/update
+Content-Type: application/json
+
+{
+  "phone": "15839816471",
+  "nickname": "毕业设计大佬",
+  "address": "宇宙中心大街 888 号"
+}
