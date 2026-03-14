@@ -1,12 +1,18 @@
 package com.lin101.store.controller;
 
+import com.lin101.store.common.Result;
+import com.lin101.store.common.ResultCode;
 import com.lin101.store.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 认证控制器
+ * 处理用户登录、验证码发送等认证相关的接口请求
+ * 接口基础路径：/api/auth
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -15,36 +21,30 @@ public class AuthController {
     private AuthService authService;
 
     @GetMapping("/sendCode")
-    public Map<String, Object> sendCode(@RequestParam String phone) {
-        Map<String, Object> response = new HashMap<>();
+    public Result<Void> sendCode(@RequestParam String phone) {
         try {
             authService.sendVerificationCode(phone);
-            response.put("code", 200);
-            response.put("message", "验证码发送成功");
+            // 纯枚举驱动：发送成功
+            return Result.success(ResultCode.SEND_CODE_SUCCESS);
         } catch (Exception e) {
-            response.put("code", 500);
-            response.put("message", "发送失败: " + e.getMessage());
+            // 纯枚举驱动：发送失败
+            return Result.failed(ResultCode.SEND_CODE_FAILED);
         }
-        return response;
     }
 
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody Map<String, String> requestData) {
-        Map<String, Object> response = new HashMap<>();
+    public Result<Map<String, Object>> login(@RequestBody Map<String, String> requestData) {
         try {
             String phone = requestData.get("phone");
             String code = requestData.get("code");
 
-            // 复杂的业务全部交给 Service 处理
             Map<String, Object> authResult = authService.loginAndRegister(phone, code);
 
-            response.put("code", 200);
-            response.put("message", "登录成功");
-            response.putAll(authResult); // 将 token 和 user 信息合并到返回结果中
+            // 纯枚举驱动：登录成功，并携带 token 和 user 数据
+            return Result.success(ResultCode.LOGIN_SUCCESS, authResult);
         } catch (Exception e) {
-            response.put("code", 400);
-            response.put("message", e.getMessage());
+            // 纯枚举驱动：登录失败
+            return Result.failed(ResultCode.LOGIN_FAILED);
         }
-        return response;
     }
 }

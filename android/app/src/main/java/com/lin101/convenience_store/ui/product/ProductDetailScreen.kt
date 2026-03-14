@@ -1,6 +1,5 @@
 package com.lin101.convenience_store.ui.product
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,218 +8,204 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+// 定义页面使用到的主题颜色
 val BrandGreen = Color(0xFF4ADE80)
+val LightGrayBg = Color(0xFFF7F8FA)
 val DarkText = Color(0xFF0F172A)
-val TextGray = Color(0xFF9CA3AF)
-val LightGrayBg = Color(0xFFF8FAFC)
 
 @Composable
 fun ProductDetailScreen(
     navController: NavHostController,
-    productId: Int = 1, // 暂时默认传入 1，后面从路由中动态获取
+    productId: Int,
     viewModel: ProductDetailViewModel = viewModel()
 ) {
-    val context = LocalContext.current
-    val quantity by viewModel.quantity.collectAsState()
     val product by viewModel.product.collectAsState()
+    val quantity by viewModel.quantity.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // 监听 Toast 提示
-    LaunchedEffect(Unit) {
+    LaunchedEffect(productId) {
         viewModel.loadProductDetail(productId)
+    }
+
+    // 【核心升级】：自定义极致利落的短时间 Snackbar 提示
+    LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { message ->
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            // 1. 如果有旧的提示还没消失，立刻强制清除，防止狂点按钮时提示堆积
+            snackbarHostState.currentSnackbarData?.dismiss()
+
+            // 2. 开启一个独立协程来精确控制显示时间
+            launch {
+                val snackbarJob = launch {
+                    // 设为 Indefinite（无限期），它的命运由我们来掌握
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        duration = SnackbarDuration.Indefinite
+                    )
+                }
+                // 3. 只展示 1.2 秒，非常干脆！
+                delay(1200)
+                // 4. 时间一到，立刻斩断协程，提示框瞬间消失
+                snackbarJob.cancel()
+            }
         }
     }
 
-    // 使用 Box 作为根布局，方便实现底部悬浮栏和顶部沉浸式按钮
-    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
-
-        // 可滚动的主内容区
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 100.dp) // 给底部悬浮栏留出空间
-        ) {
-            // 1. 顶部商品主图 (带圆角过渡)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(350.dp)
-                    .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
-                    .background(LightGrayBg)
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    containerColor = DarkText,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = BrandGreen)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(text = data.visuals.message, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
+                }
+            }
+        },
+        bottomBar = {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                color = Color.White,
+                shadowElevation = 16.dp
             ) {
-                product?.imageUrl?.let {
-                    AsyncImage(
-                        model = it,
-                        contentDescription = "Product Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                Row(
+                    modifier = Modifier.padding(24.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        modifier = Modifier.clip(RoundedCornerShape(16.dp)).background(LightGrayBg).padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Remove,
+                            contentDescription = "Minus",
+                            modifier = Modifier.size(24.dp).clickable { viewModel.decreaseQuantity() }
+                        )
+                        Text(
+                            text = quantity.toString(),
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Plus",
+                            modifier = Modifier.size(24.dp).clickable { viewModel.increaseQuantity() }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(24.dp))
+
+                    // 触发真实加入购物车的网络请求
+                    Button(
+                        onClick = { viewModel.addToCart() },
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = DarkText),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Add to Cart", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    ) { paddingValues ->
+        if (product == null) {
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = BrandGreen)
+            }
+            return@Scaffold
+        }
+
+        val p = product!!
+
+        Column(
+            modifier = Modifier.fillMaxSize().background(Color.White)
+                .padding(bottom = paddingValues.calculateBottomPadding())
+                .verticalScroll(rememberScrollState())
+        ) {
+            Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
+                AsyncImage(
+                    model = p.imageUrl ?: "https://via.placeholder.com/400",
+                    contentDescription = p.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 40.dp, start = 16.dp, end = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(
+                        modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White).clickable { navController.popBackStack() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = DarkText)
+                    }
+                    Box(
+                        modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White).clickable { },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorite", tint = DarkText)
+                    }
                 }
             }
 
-            // 2. 商品信息区
-            Column(modifier = Modifier.padding(24.dp)) {
-                // 标签区
+            Column(
+                modifier = Modifier.fillMaxSize().offset(y = (-24).dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White).padding(24.dp)
+            ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    product?.tag1?.let { ProductTag(it) }
-                    product?.tag2?.let { ProductTag(it) }
-                    product?.tag3?.let { ProductTag(it) }
+                    p.tag1?.let { ProductTag(it) }
+                    p.tag2?.let { ProductTag(it) }
+                    p.tag3?.let { ProductTag(it) }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // 标题与价格
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Text(
-                        text = product?.name ?: "Loading...",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = DarkText,
-                        modifier = Modifier.weight(1f),
-                        lineHeight = 32.sp
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = "$${product?.price ?: "0.00"}",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = BrandGreen
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // 商品描述区
-                Text(text = "Description", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = DarkText)
+                Text(text = p.name, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = DarkText)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "A delicious and healthy bowl featuring fresh avocado, organic quinoa, cherry tomatoes, and a zesty lemon dressing. Perfect for a quick, nutritious lunch or light dinner.",
-                    fontSize = 14.sp,
-                    color = TextGray,
-                    lineHeight = 22.sp
-                )
-
+                Text(text = "$${p.price}", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = BrandGreen)
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 营养成分 (占位UI，增加页面的高级感)
-                Text(text = "Nutritional Info", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = DarkText)
-                Spacer(modifier = Modifier.height(12.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    NutritionItem("Calories", "320 kcal")
-                    NutritionItem("Proteins", "12g")
-                    NutritionItem("Fats", "18g")
-                    NutritionItem("Carbs", "45g")
-                }
-            }
-        }
-
-        // 3. 顶部绝对定位的导航按钮 (悬浮在图片上方)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 48.dp, start = 20.dp, end = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            // 返回按钮
-            Box(
-                modifier = Modifier.size(44.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.8f)).clickable { navController.popBackStack() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = DarkText)
-            }
-            // 收藏按钮
-            Box(
-                modifier = Modifier.size(44.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.8f)).clickable { /* TODO: Toggle Favorite */ },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorite", tint = DarkText)
-            }
-        }
-
-        // 4. 底部固定的操作栏 (选择数量 + 加入购物车)
-        Surface(
-            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().shadow(16.dp),
-            color = Color.White,
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // 数量选择器
-                Row(
-                    modifier = Modifier.clip(RoundedCornerShape(100.dp)).background(LightGrayBg).padding(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = { viewModel.decreaseQuantity() },
-                        modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.White)
-                    ) {
-                        Icon(Icons.Default.Remove, contentDescription = "Minus", modifier = Modifier.size(16.dp))
-                    }
-
-                    Text(
-                        text = quantity.toString(),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    IconButton(
-                        onClick = { viewModel.increaseQuantity() },
-                        modifier = Modifier.size(36.dp).clip(CircleShape).background(BrandGreen)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = "Plus", tint = Color.White, modifier = Modifier.size(16.dp))
-                    }
+                    NutritionItem("Calories", "420")
+                    NutritionItem("Protein", "12g")
+                    NutritionItem("Fat", "18g")
                 }
 
-                Spacer(modifier = Modifier.width(24.dp))
-
-                // 加入购物车按钮
-                Button(
-                    onClick = { viewModel.addToCart() },
-                    modifier = Modifier.weight(1f).height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = DarkText),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Add to Cart", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Text("Description", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkText)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("This is a delicious product. Perfect for your daily needs.", color = Color.Gray, lineHeight = 24.sp)
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
 
-// 提取的商品标签组件
 @Composable
 fun ProductTag(text: String) {
     Box(
@@ -230,15 +215,14 @@ fun ProductTag(text: String) {
     }
 }
 
-// 提取的营养成分小卡片组件
 @Composable
 fun NutritionItem(title: String, value: String) {
     Column(
-        modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(LightGrayBg).padding(12.dp),
+        modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(Color(0xFFF7F8FA)).padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = value, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkText)
+        Text(text = title, color = Color.Gray, fontSize = 12.sp)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = title, fontSize = 10.sp, color = TextGray)
+        Text(text = value, color = Color(0xFF0F172A), fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }

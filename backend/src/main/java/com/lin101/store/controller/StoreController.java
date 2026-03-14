@@ -1,5 +1,7 @@
 package com.lin101.store.controller;
 
+import com.lin101.store.common.Result;
+import com.lin101.store.common.ResultCode;
 import com.lin101.store.entity.Category;
 import com.lin101.store.entity.Product;
 import com.lin101.store.service.CategoryService;
@@ -9,11 +11,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * 商城核心控制器
+ * 处理商品分类、商品查询等商城基础业务接口请求
+ * 接口基础路径：/api
+ */
 @RestController
 @RequestMapping("/api")
 public class StoreController {
 
-    // 现在注入的是 Service，而不是 Mapper
     @Autowired
     private CategoryService categoryService;
 
@@ -21,13 +27,29 @@ public class StoreController {
     private ProductService productService;
 
     @GetMapping("/categories")
-    public List<Category> getCategories() {
-        return categoryService.list(); // 直接调用 Service 的 list() 方法
+    public Result<List<Category>> getCategories() {
+        try {
+            return Result.success(ResultCode.SUCCESS, categoryService.list());
+        } catch (Exception e) {
+            return Result.failed(ResultCode.FAILED);
+        }
     }
 
     @GetMapping("/products")
-    public List<Product> getProducts(@RequestParam(required = false) Integer categoryId) {
-        // 具体的查询逻辑已经被封装在 Service 里了，Controller 变得极其干净
-        return productService.getProductsByCategoryId(categoryId);
+    public Result<List<Product>> getProducts(@RequestParam(required = false) Integer categoryId) {
+        try {
+            return Result.success(ResultCode.SUCCESS, productService.getProductsByCategoryId(categoryId));
+        } catch (Exception e) {
+            return Result.failed(ResultCode.FAILED);
+        }
+    }
+
+    @GetMapping("/products/{id}")
+    public Result<Product> getProductById(@PathVariable("id") Integer id) {
+        try {
+            return Result.success(ResultCode.SUCCESS, productService.getById(id));
+        } catch (Exception e) {
+            return Result.failed(ResultCode.FAILED);
+        }
     }
 }

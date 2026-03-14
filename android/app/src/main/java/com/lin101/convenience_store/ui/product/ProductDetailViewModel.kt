@@ -1,7 +1,12 @@
 package com.lin101.convenience_store.ui.product
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.lin101.convenience_store.data.api.ApiClient
+import com.lin101.convenience_store.data.local.UserPreferences
+import com.lin101.convenience_store.data.local.dataStore
+import com.lin101.convenience_store.data.model.CartAddReq
 import com.lin101.convenience_store.data.model.Product
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,9 +14,16 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class ProductDetailViewModel : ViewModel() {
+/**
+ * 商品详情页的 ViewModel
+ * 升级为 AndroidViewModel 以便读取本地 DataStore 中的登录信息
+ */
+class ProductDetailViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val context = application
 
     // 购买数量状态，默认为 1
     private val _quantity = MutableStateFlow(1)
@@ -21,47 +33,72 @@ class ProductDetailViewModel : ViewModel() {
     private val _product = MutableStateFlow<Product?>(null)
     val product: StateFlow<Product?> = _product.asStateFlow()
 
-    // Toast 提示事件流
+    // 提示事件流
     private val _uiEvent = MutableSharedFlow<String>()
     val uiEvent: SharedFlow<String> = _uiEvent.asSharedFlow()
 
-    // 初始化时加载商品数据 (目前用假数据占位)
+    // 加载真实的单件商品数据
     fun loadProductDetail(productId: Int) {
-        // TODO: 后续替换为调用 ApiClient.storeService.getProductDetail(productId)
-        _product.value = Product(
-            productId = productId,
-            categoryId = 1,
-            name = "Zesty Avocado & Quinoa Bowl",
-            price = 12.50,
-            imageUrl = "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=800&auto=format&fit=crop",
-            tag1 = "Vegan",
-            tag2 = "Gluten-Free",
-            tag3 = "Organic"
-        )
+        viewModelScope.launch {
+            try {
+                val response = ApiClient.storeService.getProductById(productId)
+                if (response.code == 200 && response.data != null) {
+                    _product.value = response.data
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiEvent.emit("Failed to load details. Please check network.")
+            }
+        }
     }
 
     // 增加数量
     fun increaseQuantity() {
-        if (_quantity.value < 99) {
-            _quantity.value += 1
-        }
+        if (_quantity.value < 99) _quantity.value += 1
     }
 
     // 减少数量
     fun decreaseQuantity() {
-        if (_quantity.value > 1) {
-            _quantity.value -= 1
-        }
+        if (_quantity.value > 1) _quantity.value -= 1
     }
 
-    // 加入购物车逻辑
+    /**
+     * 【核心升级】接入真实的后端加入购物车接口
+     */
     fun addToCart() {
         viewModelScope.launch {
-            val currentProduct = _product.value
-            if (currentProduct != null) {
-                // TODO: 后续这里调用后端的 /api/cart/add 接口，将商品ID和数量存入数据库
-                println("Added to Cart: ${currentProduct.name}, Qty: ${_quantity.value}")
-                _uiEvent.emit("Successfully added ${_quantity.value} item(s) to cart!")
+            val currentProduct = _product.value ?: return@launch
+            try {
+                // 1. 从 DataStore 获取当前登录用户的 ID
+                val prefs = context.dataStore.data.first()
+                val userId = prefs[UserPreferences.USER_ID_KEY]
+
+                // 未登录情况拦截
+                if (userId == null) {
+                    _uiEvent.emit("Please log in first")
+                    return@launch
+                }
+
+                // 2. 组装请求参数
+                val request = CartAddReq(
+                    userId = userId,
+                    productId = currentProduct.productId,
+                    quantity = _quantity.value
+                )
+
+                // 3. 发送真实网络请求给后端
+                val response = ApiClient.storeService.addToCart(request)
+
+                // 4. 解析后端返回的状态码
+                if (response.code == 200) {
+                    // 动态拼接商品名称，提示更加人性化
+                    _uiEvent.emit("Added ${_quantity.value} ${currentProduct.name} to cart!")
+                } else {
+                    _uiEvent.emit(response.message ?: "Failed to add")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiEvent.emit("Network error, please try again.")
             }
         }
     }

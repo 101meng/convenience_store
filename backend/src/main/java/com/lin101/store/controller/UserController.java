@@ -1,10 +1,11 @@
 package com.lin101.store.controller;
 
+import com.lin101.store.common.Result;
+import com.lin101.store.common.ResultCode;
 import com.lin101.store.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -14,36 +15,25 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    /**
-     * 更新用户资料接口
-     * POST /api/user/update
-     */
     @PostMapping("/update")
-    public Map<String, Object> updateProfile(@RequestBody Map<String, String> requestData) {
-        Map<String, Object> response = new HashMap<>();
+    public Result<Map<String, Object>> updateProfile(@RequestBody Map<String, String> requestData) {
         try {
-            // 获取前端传参
             String phone = requestData.get("phone");
             String nickname = requestData.get("nickname");
             String address = requestData.get("address");
 
-            // 核心业务全部下沉交给 Service 层处理
             Map<String, Object> result = userService.updateProfile(phone, nickname, address);
 
-            response.put("code", 200);
-            response.put("message", "个人资料更新成功");
-            response.putAll(result); // 将更新后的 user 信息放入返回体
+            // 【重构极致版】：完全消除硬编码，传入枚举类和数据即可
+            return Result.success(ResultCode.UPDATE_PROFILE_SUCCESS, result);
 
         } catch (IllegalArgumentException e) {
-            // 捕获 Service 层抛出的业务校验异常
-            response.put("code", 400);
-            response.put("message", e.getMessage());
+            // 参数错误，直接抛出统一定义的枚举
+            return Result.failed(ResultCode.VALIDATE_FAILED);
+
         } catch (Exception e) {
-            // 捕获不可预知的服务器异常
-            response.put("code", 500);
-            response.put("message", "服务器内部错误");
-            e.printStackTrace();
+            // 业务失败，抛出统一定义的枚举
+            return Result.failed(ResultCode.UPDATE_PROFILE_FAILED);
         }
-        return response;
     }
 }

@@ -1,37 +1,44 @@
 package com.lin101.convenience_store.data.api
 
-import com.lin101.convenience_store.data.model.ApiResponse
-import com.lin101.convenience_store.data.model.Category
-import com.lin101.convenience_store.data.model.LoginRequest
-import com.lin101.convenience_store.data.model.LoginResponse
-import com.lin101.convenience_store.data.model.Product
-import com.lin101.convenience_store.data.model.UpdateProfileRequest
-import com.lin101.convenience_store.data.model.UpdateProfileResponse
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Query
+import com.lin101.convenience_store.data.model.*
+import retrofit2.http.*
 
 interface StoreApiService {
-    // 对应后端的 @GetMapping("/categories")
+
+    // 【核心修改】：套上 BaseResponse 包装盒
     @GET("api/categories")
-    suspend fun getCategories(): List<Category>
+    suspend fun getCategories(): BaseResponse<List<Category>>
 
-    // 对应后端的 @GetMapping("/products")
     @GET("api/products")
-    suspend fun getProducts(@Query("categoryId") categoryId: Int? = null): List<Product>
+    suspend fun getProducts(@Query("categoryId") categoryId: Int? = null): BaseResponse<List<Product>>
 
-    // 发送验证码
+    @GET("api/products/{id}")
+    suspend fun getProductById(@Path("id") productId: Int): BaseResponse<Product>
+
+    // ====== 下面的代码保持你原来的样子即可 ======
     @GET("api/auth/sendCode")
     suspend fun sendCode(@Query("phone") phone: String): ApiResponse
 
-    // 登录验证
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 
-    // --- 新增：用户相关接口 ---
-
-    // 更新用户资料
     @POST("api/user/update")
     suspend fun updateProfile(@Body request: UpdateProfileRequest): UpdateProfileResponse
+
+    // 购物车部分 (之前已加)
+    @GET("api/cart/list")
+    suspend fun getCartList(@Query("userId") userId: Int): BaseResponse<List<CartItem>>
+
+    @PUT("api/cart/update")
+    suspend fun updateCartQuantity(@Body request: CartUpdateReq): BaseResponse<Any>
+
+    @DELETE("api/cart/remove")
+    suspend fun removeCartItem(@Query("cartId") cartId: Int): BaseResponse<Any>
+
+    @POST("api/cart/add")
+    suspend fun addToCart(@Body request: CartAddReq): BaseResponse<Any>
+
+    // ================= 订单模块 =================
+    @POST("api/order/submit")
+    suspend fun submitOrder(@Body request: OrderModels.OrderSubmitReq): BaseResponse<String>
 }

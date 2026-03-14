@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -114,10 +113,12 @@ fun CategoryScreen(
                     modifier = Modifier.weight(1f) // 占满剩余空间
                 ) {
                     items(products) { product ->
-                        CategoryGridCard(product = product) {
-                            // TODO: 后续可以将 productId 传给详情页
-                            navController.navigate("product_detail")
-                        }
+                        CategoryGridCard(
+                            product = product,
+                            onClick = {
+                                navController.navigate("product_detail/${product.productId}")
+                            }
+                        )
                     }
                 }
             }
