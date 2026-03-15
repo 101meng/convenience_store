@@ -4,8 +4,11 @@ import com.lin101.store.common.Result;
 import com.lin101.store.common.ResultCode;
 import com.lin101.store.service.OrderService;
 import com.lin101.store.vo.OrderSubmitReq;
+import com.lin101.store.vo.OrderVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 订单控制器
@@ -38,6 +41,20 @@ public class OrderController {
             e.printStackTrace();
             // 纯枚举驱动：其他未知失败
             return Result.failed(ResultCode.ORDER_SUBMIT_FAILED);
+        }
+    }
+
+    /**
+     * 获取历史订单列表
+     * GET /api/order/list?userId=1
+     */
+    @GetMapping("/list")
+    public Result<List<OrderVO>> getOrderList(@RequestParam("userId") Integer userId) {
+        try {
+            return Result.success(ResultCode.SUCCESS, orderService.getUserOrders(userId));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failed(ResultCode.FAILED);
         }
     }
 }

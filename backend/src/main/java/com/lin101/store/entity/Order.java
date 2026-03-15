@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 /**
  * 订单总表实体类
  * 对应数据库的 `orders` 表
@@ -46,4 +48,7 @@ public class Order {
 
     // 收货地址
     private String deliveryAddress;
+
+    private LocalDateTime createdAt;
+
 }

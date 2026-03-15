@@ -178,8 +178,9 @@ fun LoginScreen(
             onClick = {
                 viewModel.verifyAndLogin(
                     onSuccess = {
+                        // ✅ 【修改回来】：手动告诉它去主页！并清空回退栈，防止按返回键回到登录页
                         navController.navigate("home") {
-                            popUpTo("login") { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     }
                 )

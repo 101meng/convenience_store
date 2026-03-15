@@ -19,13 +19,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import java.util.Locale
 
 val BrandGreen = Color(0xFF4ADE80)
 val LightGrayBg = Color(0xFFF7F8FA)
@@ -37,20 +37,18 @@ fun CheckoutScreen(
 ) {
     val context = LocalContext.current
 
-    // 监听 ViewModel 中的状态
     val isPickup by viewModel.isPickup.collectAsState()
     val selectedStoreId by viewModel.selectedStoreId.collectAsState()
     val selectedPayment by viewModel.selectedPayment.collectAsState()
     val subtotal by viewModel.subtotal.collectAsState()
+    val deliveryAddress by viewModel.deliveryAddress.collectAsState()
 
-    // 监听成功或失败的 Toast 提示
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 
-    // 动态计算费用
     val deliveryFee = if (isPickup) 0.0 else 1.50
     val totalAmount = subtotal + deliveryFee
 
@@ -88,14 +86,14 @@ fun CheckoutScreen(
 
             // 2.2 动态显示地址或门店
             if (!isPickup) {
-                ShippingAddressCard()
+                ShippingAddressCard(address = deliveryAddress.ifEmpty { "Please set your address in Profile" })
             } else {
                 PickupStoreCard(selectedStoreId) { newId -> viewModel.setStore(newId) }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 2.3 完美还原的支付方式选择模块 (带动态状态交互)
+            // 2.3 支付方式选择
             PaymentMethodSection(
                 selectedPayment = selectedPayment,
                 onPaymentSelect = { payment -> viewModel.setPayment(payment) }
@@ -103,8 +101,8 @@ fun CheckoutScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 2.4 订单总览
-            OrderSummarySection(isPickup, subtotal, deliveryFee, totalAmount)
+            // 2.4 订单总览 【修复：去掉了碍眼的白色背景框，直接融入浅灰色背景】
+            OrderSummarySection(isPickup, subtotal, deliveryFee)
 
             Spacer(modifier = Modifier.height(32.dp))
         }
@@ -114,16 +112,14 @@ fun CheckoutScreen(
             Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
                     Text("Total Payment", color = Color.Gray, fontSize = 14.sp)
-                    Text(String.format("$%.2f", totalAmount), fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = BrandGreen)
+                    Text(String.format(Locale.US, "$%.2f", totalAmount), fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = BrandGreen)
                 }
                 Button(
-                    // 【核心触发】：点击进行真实的下单请求！
                     onClick = {
                         viewModel.submitOrder(
                             onSuccess = {
-                                // 下单成功后，清空路由栈，直接跳回首页！
                                 navController.navigate("home") {
-                                    popUpTo(0) // 清空所有历史页面
+                                    popUpTo(0)
                                 }
                             }
                         )
@@ -140,7 +136,7 @@ fun CheckoutScreen(
 }
 
 @Composable
-private fun ShippingAddressCard() {
+private fun ShippingAddressCard(address: String) {
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(Color.White).padding(20.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -150,7 +146,7 @@ private fun ShippingAddressCard() {
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text("Central Park West, NY 10025", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(address, fontWeight = FontWeight.Bold, fontSize = 16.sp)
     }
 }
 
@@ -164,7 +160,6 @@ private fun PickupStoreCard(selectedStoreId: Int, onSelectStore: (Int) -> Unit) 
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 动态门店选项列表
         StoreItemRow(id = 1, name = "Market Street Flagship", address = "123 Market St", isSelected = selectedStoreId == 1) { onSelectStore(1) }
         Spacer(modifier = Modifier.height(8.dp))
         StoreItemRow(id = 2, name = "GreenLoop Market", address = "Downtown, 5th Ave", isSelected = selectedStoreId == 2) { onSelectStore(2) }
@@ -187,9 +182,6 @@ private fun StoreItemRow(id: Int, name: String, address: String, isSelected: Boo
     }
 }
 
-/**
- * 【你设计的精美支付选择模块】完美还原版
- */
 @Composable
 private fun PaymentMethodSection(selectedPayment: String, onPaymentSelect: (String) -> Unit) {
     Column {
@@ -225,7 +217,6 @@ private fun PaymentRow(title: String, iconVector: ImageVector, iconColor: Color,
         }
         Spacer(modifier = Modifier.width(16.dp))
         Text(title, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-
         if (isSelected) {
             Icon(Icons.Default.CheckCircle, contentDescription = null, tint = BrandGreen)
         } else {
@@ -235,16 +226,22 @@ private fun PaymentRow(title: String, iconVector: ImageVector, iconColor: Color,
 }
 
 @Composable
-private fun OrderSummarySection(isPickup: Boolean, subtotal: Double, deliveryFee: Double, total: Double) {
-    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(Color.White).padding(24.dp)) {
+private fun OrderSummarySection(isPickup: Boolean, subtotal: Double, deliveryFee: Double) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White)
+            .padding(24.dp) // 统一内边距
+    ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Subtotal", color = Color.Gray)
-            Text(String.format("$%.2f", subtotal), color = Color.Gray)
+            Text("Subtotal", color = Color.Gray, fontWeight = FontWeight.Medium)
+            Text(String.format(Locale.US, "$%.2f", subtotal), color = Color.Gray, fontWeight = FontWeight.Medium)
         }
         Spacer(modifier = Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(if (isPickup) "Pickup Fee" else "Delivery Fee", color = Color.Gray)
-            Text(String.format("$%.2f", deliveryFee), color = Color.Gray)
+            Text(if (isPickup) "Pickup Fee" else "Delivery Fee", color = Color.Gray, fontWeight = FontWeight.Medium)
+            Text(String.format(Locale.US, "$%.2f", deliveryFee), color = Color.Gray, fontWeight = FontWeight.Medium)
         }
     }
 }

@@ -15,5 +15,5 @@ public class User {
     private String nickname;
     private String avatarUrl;
     private BigDecimal balance;
-    private String address; // 刚才用 SQL 新增的地址字段
+    private String address;
 }

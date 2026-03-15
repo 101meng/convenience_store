@@ -41,4 +41,7 @@ interface StoreApiService {
     // ================= 订单模块 =================
     @POST("api/order/submit")
     suspend fun submitOrder(@Body request: OrderModels.OrderSubmitReq): BaseResponse<String>
+
+    @GET("api/order/list")
+    suspend fun getOrderList(@Query("userId") userId: Int): BaseResponse<List<OrderModels.OrderVO>>
 }
