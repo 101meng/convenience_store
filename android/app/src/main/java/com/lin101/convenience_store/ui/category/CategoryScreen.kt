@@ -2,7 +2,19 @@ package com.lin101.convenience_store.ui.category
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -10,9 +22,21 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.BakeryDining
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Cookie
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.LocalDrink
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,9 +64,12 @@ fun CategoryScreen(
     val products by viewModel.filteredProducts.collectAsState()
 
     // 查找当前选中的分类名称，用于显示标题
-    val currentCategoryName = categories.find { it.categoryId == selectedCategoryId }?.categoryName?.uppercase() ?: ""
+    val currentCategoryName =
+        categories.find { it.categoryId == selectedCategoryId }?.categoryName?.uppercase() ?: ""
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(Color.White)) {
         Text(
             text = "Categories",
             fontSize = 28.sp,
@@ -51,15 +78,25 @@ fun CategoryScreen(
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextField(
                 value = "",
                 onValueChange = {},
                 placeholder = { Text("Search snacks, drinks...", color = TextGray) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextGray) },
-                modifier = Modifier.weight(1f).height(50.dp),
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = TextGray
+                    )
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(50.dp),
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = LightGray,
                     focusedContainerColor = LightGray,
@@ -70,7 +107,10 @@ fun CategoryScreen(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Box(
-                modifier = Modifier.size(50.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFE8F5E9)),
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFE8F5E9)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.QrCodeScanner, contentDescription = "Scan", tint = BrandGreen)
@@ -82,7 +122,10 @@ fun CategoryScreen(
         Row(modifier = Modifier.fillMaxSize()) {
             // 左侧：分类导航栏 (动态渲染)
             LazyColumn(
-                modifier = Modifier.width(80.dp).fillMaxHeight().background(Color.White)
+                modifier = Modifier
+                    .width(80.dp)
+                    .fillMaxHeight()
+                    .background(Color.White)
             ) {
                 items(categories) { category ->
                     CategorySidebarItem(
@@ -95,7 +138,10 @@ fun CategoryScreen(
 
             // 右侧：商品内容区
             Column(
-                modifier = Modifier.weight(1f).fillMaxHeight().padding(horizontal = 16.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(horizontal = 16.dp)
             ) {
                 Text(
                     text = "$currentCategoryName FOOD",
@@ -145,18 +191,29 @@ private fun CategorySidebarItem(category: Category, isSelected: Boolean, onClick
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth().height(80.dp).clickable(onClick = onClick),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Box(
-            modifier = Modifier.size(50.dp).clip(RoundedCornerShape(16.dp)).background(bgColor),
+            modifier = Modifier
+                .size(50.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(bgColor),
             contentAlignment = Alignment.Center
         ) {
             Icon(icon, contentDescription = category.categoryName, tint = contentColor)
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(category.categoryName.uppercase(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = textColor)
+        Text(
+            category.categoryName.uppercase(),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
     }
 }
 
@@ -166,12 +223,24 @@ private fun CategorySidebarItem(category: Category, isSelected: Boolean, onClick
 @Composable
 private fun CategoryGridCard(product: Product, onClick: () -> Unit) {
     Box(
-        modifier = Modifier.aspectRatio(1f).clip(RoundedCornerShape(16.dp)).background(Color(0xFFE5E7EB)).clickable(onClick = onClick),
+        modifier = Modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFE5E7EB))
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(8.dp)
+        ) {
             // 此处暂时使用统一占位图标，后续接入 Coil 加载 product.imageUrl
-            Icon(Icons.Default.Fastfood, contentDescription = null, tint = BrandGreen, modifier = Modifier.size(32.dp))
+            Icon(
+                Icons.Default.Fastfood,
+                contentDescription = null,
+                tint = BrandGreen,
+                modifier = Modifier.size(32.dp)
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = product.name,
@@ -180,7 +249,12 @@ private fun CategoryGridCard(product: Product, onClick: () -> Unit) {
                 maxLines = 2,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
-            Text(text = "$${product.price}", color = BrandGreen, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
+            Text(
+                text = "$${product.price}",
+                color = BrandGreen,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 12.sp
+            )
         }
     }
 }

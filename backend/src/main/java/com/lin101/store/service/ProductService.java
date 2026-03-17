@@ -7,4 +7,5 @@ import java.util.List;
 public interface ProductService extends IService<Product> {
     // 根据分类ID获取商品
     List<Product> getProductsByCategoryId(Integer categoryId);
+    List<Product> getFlashSaleProducts();
 }

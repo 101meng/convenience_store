@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @TableName("products")
@@ -24,4 +25,7 @@ public class Product {
     private String tag1;
     private String tag2;
     private String tag3;
+    private Double originalPrice;
+    private Integer isFlashSale;
+    private LocalDateTime flashSaleEndTime;
 }

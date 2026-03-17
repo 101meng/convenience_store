@@ -2,14 +2,37 @@ package com.lin101.convenience_store.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage // 确保引入了 Coil
+import coil.compose.AsyncImage
 import java.util.Locale
 
 val LightGrayBg = Color(0xFFF8FAFC)
@@ -60,18 +83,36 @@ fun ProfileScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White).clickable { /* TODO: Settings */ },
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
+                    .clickable { /* TODO: Settings */ },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.Gray)
             }
             Text("My Account", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkText)
             Box(
-                modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White),
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.NotificationsNone, contentDescription = "Notifications", tint = Color.Gray)
-                Box(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(6.dp).clip(CircleShape).background(Color(0xFFF97316)))
+                Icon(
+                    Icons.Default.NotificationsNone,
+                    contentDescription = "Notifications",
+                    tint = Color.Gray
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFF97316))
+                )
             }
         }
 
@@ -84,12 +125,19 @@ fun ProfileScreen(
                 AsyncImage(
                     model = avatarUrl,
                     contentDescription = "Avatar",
-                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(32.dp)),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(32.dp)),
                     contentScale = ContentScale.Crop
                 )
             } else {
                 // 没有头像时显示默认占位底色
-                Box(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(32.dp)).background(Color(0xFFE8F5E9)))
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(32.dp))
+                        .background(Color(0xFFE8F5E9))
+                )
             }
 
             // 编辑小图标
@@ -103,7 +151,12 @@ fun ProfileScreen(
                     .clickable { navController.navigate("edit_profile") },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(16.dp), tint = Color.Gray)
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.Gray
+                )
             }
         }
 
@@ -127,23 +180,45 @@ fun ProfileScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFEEF2FF)),
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFEEF2FF)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF6366F1))
             }
             Spacer(modifier = Modifier.width(16.dp))
-            Text("EDIT PROFILE", fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.weight(1f))
+            Text(
+                "EDIT PROFILE",
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                modifier = Modifier.weight(1f)
+            )
             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // 余额与订单双列卡片
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             // 余额卡片
-            Column(modifier = Modifier.weight(1f).clip(RoundedCornerShape(24.dp)).background(Color.White).padding(20.dp)) {
-                Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFDCFCE7)), contentAlignment = Alignment.Center) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color.White)
+                    .padding(20.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFDCFCE7)), contentAlignment = Alignment.Center
+                ) {
                     Icon(Icons.Default.CreditCard, contentDescription = null, tint = BrandGreen)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -151,12 +226,18 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // ✅ 【修改】：使用真实的余额数据并格式化，解决 Locale 警告
-                Text(String.format(Locale.US, "$%.2f", balance), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                Text(
+                    String.format(Locale.US, "$%.2f", balance),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = {},
-                    modifier = Modifier.fillMaxWidth().height(40.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -165,27 +246,74 @@ fun ProfileScreen(
             }
 
             // 最近订单卡片
-            Column(modifier = Modifier.weight(1f).height(190.dp).clip(RoundedCornerShape(24.dp)).background(Color.White).clickable {
-                navController.navigate("orderHistory")
-            }.padding(20.dp)) {
-                Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFEFF6FF)), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Inventory2, contentDescription = null, tint = Color(0xFF3B82F6))
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(190.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color.White)
+                    .clickable {
+                        navController.navigate("orderHistory")
+                    }
+                    .padding(20.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFEFF6FF)), contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Inventory2,
+                        contentDescription = null,
+                        tint = Color(0xFF3B82F6)
+                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("LAST ORDER", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                Text(
+                    "LAST ORDER",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Gray
+                )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Pending\nDelivery", fontSize = 14.sp, fontWeight = FontWeight.Bold, lineHeight = 18.sp)
+                Text(
+                    "Pending\nDelivery",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 18.sp
+                )
                 Spacer(modifier = Modifier.weight(1f))
 
                 // 重叠商品图标展示
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(Color(0xFF064E3B)))
-                    Box(modifier = Modifier.size(32.dp).offset(x = (-8).dp).clip(CircleShape).background(Color(0xFF64748B)))
                     Box(
-                        modifier = Modifier.size(32.dp).offset(x = (-16).dp).clip(CircleShape).background(LightGrayBg),
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF064E3B))
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .offset(x = (-8).dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF64748B))
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .offset(x = (-16).dp)
+                            .clip(CircleShape)
+                            .background(LightGrayBg),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("+1", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                        Text(
+                            "+1",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Gray
+                        )
                     }
                 }
             }
@@ -195,7 +323,12 @@ fun ProfileScreen(
 
         // 设置与安全区
         Row(modifier = Modifier.fillMaxWidth()) {
-            Text("SETTINGS & SECURITY", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+            Text(
+                "SETTINGS & SECURITY",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Gray
+            )
         }
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -207,10 +340,13 @@ fun ProfileScreen(
         // 退出登录按钮
         Row(
             modifier = Modifier
-                // ...
                 .clickable {
                     viewModel.logout(
                         onSuccess = {
+                            navController.navigate("login") {
+                                // 清空路由栈，彻底退出
+                                popUpTo(0) { inclusive = true }
+                            }
                         }
                     )
                 }
@@ -218,7 +354,10 @@ fun ProfileScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFFEE2E2)),
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFFEE2E2)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Logout, contentDescription = null, tint = DangerRed)
@@ -234,11 +373,19 @@ fun ProfileScreen(
 @Composable
 private fun SettingRowItem(icon: ImageVector, title: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(Color.White).clickable {  }.padding(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White)
+            .clickable { }
+            .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(LightGrayBg),
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(LightGrayBg),
             contentAlignment = Alignment.Center
         ) {
             Icon(icon, contentDescription = null, tint = Color.Gray)

@@ -7,7 +7,13 @@ import com.lin101.convenience_store.data.api.ApiClient
 import com.lin101.convenience_store.data.local.UserPreferences
 import com.lin101.convenience_store.data.local.dataStore
 import com.lin101.convenience_store.data.model.OrderModels
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -50,17 +56,23 @@ class CheckoutViewModel(application: Application) : AndroidViewModel(application
     /**
      * 更新配送/自提状态
      */
-    fun setPickup(isPickup: Boolean) { _isPickup.value = isPickup }
+    fun setPickup(isPickup: Boolean) {
+        _isPickup.value = isPickup
+    }
 
     /**
      * 更新选中的门店
      */
-    fun setStore(storeId: Int) { _selectedStoreId.value = storeId }
+    fun setStore(storeId: Int) {
+        _selectedStoreId.value = storeId
+    }
 
     /**
      * 更新选中的支付方式
      */
-    fun setPayment(payment: String) { _selectedPayment.value = payment }
+    fun setPayment(payment: String) {
+        _selectedPayment.value = payment
+    }
 
     /**
      * 从本地获取用户地址，并从后端获取真实的购物车商品计算小计金额
@@ -106,7 +118,8 @@ class CheckoutViewModel(application: Application) : AndroidViewModel(application
                 val userId = prefs[UserPreferences.USER_ID_KEY] ?: return@launch
 
                 // 获取当前 ViewModel 中的地址，如果为空则给出默认提示地址
-                val currentAddress = _deliveryAddress.value.ifEmpty { "Central Park West, NY 10025" }
+                val currentAddress =
+                    _deliveryAddress.value.ifEmpty { "Central Park West, NY 10025" }
 
                 // 2. 组装发给后端的复杂请求体
                 val req = OrderModels.OrderSubmitReq(

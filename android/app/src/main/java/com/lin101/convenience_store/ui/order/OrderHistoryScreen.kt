@@ -1,8 +1,19 @@
 package com.lin101.convenience_store.ui.order
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -10,7 +21,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,7 +66,9 @@ fun OrderHistoryScreen(
     val orders by viewModel.orders.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize().background(LightGrayBg)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(LightGrayBg)) {
 
         Row(
             modifier = Modifier
@@ -77,7 +96,10 @@ fun OrderHistoryScreen(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Ongoing", fontWeight = FontWeight.Bold, color = Color.Black, fontSize = 15.sp)
                 Spacer(modifier = Modifier.height(4.dp))
-                Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(Color.Black))
+                Box(modifier = Modifier
+                    .size(5.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black))
             }
             Text("Completed", color = Color.Gray, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             Text("Cancelled", color = Color.Gray, fontSize = 15.sp, fontWeight = FontWeight.Medium)
@@ -113,9 +135,35 @@ fun OrderCard(order: OrderModels.OrderVO) {
     val safeStatus = order.status ?: "PENDING"
 
     val style = when (safeStatus.uppercase(Locale.ROOT)) {
-        "COMPLETED" -> OrderStatusStyle("Completed", BrandGreen, Color(0xFFDCFCE7), Color.White, Color.Black, Color.LightGray, "Reorder")
-        "CANCELLED" -> OrderStatusStyle("Cancelled", Color.Red, Color(0xFFFEE2E2), Color.Transparent, Color.Gray, Color.Transparent, "")
-        else -> OrderStatusStyle("Ongoing", Color(0xFF3B82F6), Color(0xFFDBEAFE), Color.Black, Color.White, Color.Transparent, "Track Order")
+        "COMPLETED" -> OrderStatusStyle(
+            "Completed",
+            BrandGreen,
+            Color(0xFFDCFCE7),
+            Color.White,
+            Color.Black,
+            Color.LightGray,
+            "Reorder"
+        )
+
+        "CANCELLED" -> OrderStatusStyle(
+            "Cancelled",
+            Color.Red,
+            Color(0xFFFEE2E2),
+            Color.Transparent,
+            Color.Gray,
+            Color.Transparent,
+            ""
+        )
+
+        else -> OrderStatusStyle(
+            "Ongoing",
+            Color(0xFF3B82F6),
+            Color(0xFFDBEAFE),
+            Color.Black,
+            Color.White,
+            Color.Transparent,
+            "Track Order"
+        )
     }
 
     Column(
@@ -138,7 +186,12 @@ fun OrderCard(order: OrderModels.OrderVO) {
                     .background(style.statusBg)
                     .padding(horizontal = 10.dp, vertical = 6.dp)
             ) {
-                Text(style.statusText, color = style.statusColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    style.statusText,
+                    color = style.statusColor,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 
@@ -153,7 +206,10 @@ fun OrderCard(order: OrderModels.OrderVO) {
             val items = order.items ?: emptyList() // 防止 items 本身为 null
 
             if (items.isNotEmpty()) {
-                Box(modifier = Modifier.size(52.dp).clip(CircleShape).background(LightGrayBg)) {
+                Box(modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(LightGrayBg)) {
                     AsyncImage(
                         model = items[0].imageUrl ?: "https://via.placeholder.com/150",
                         contentDescription = null,
@@ -166,7 +222,10 @@ fun OrderCard(order: OrderModels.OrderVO) {
             Spacer(modifier = Modifier.width(12.dp))
 
             if (items.size > 1) {
-                Box(modifier = Modifier.size(52.dp).clip(CircleShape).background(LightGrayBg)) {
+                Box(modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(LightGrayBg)) {
                     AsyncImage(
                         model = items[1].imageUrl ?: "https://via.placeholder.com/150",
                         contentDescription = null,
@@ -179,8 +238,19 @@ fun OrderCard(order: OrderModels.OrderVO) {
             Spacer(modifier = Modifier.width(12.dp))
 
             if (items.size > 2) {
-                Box(modifier = Modifier.size(52.dp).clip(CircleShape).background(LightGrayBg), contentAlignment = Alignment.Center) {
-                    Text("+${items.size - 2}", color = Color.Gray, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(CircleShape)
+                        .background(LightGrayBg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "+${items.size - 2}",
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
                 }
             }
         }
@@ -193,7 +263,12 @@ fun OrderCard(order: OrderModels.OrderVO) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text("TOTAL PRICE", color = Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    "TOTAL PRICE",
+                    color = Color.Gray,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     String.format(Locale.US, "$%.2f", order.actualAmount ?: 0.0),
@@ -206,9 +281,15 @@ fun OrderCard(order: OrderModels.OrderVO) {
             if (style.actionText.isNotEmpty()) {
                 Button(
                     onClick = { /* TODO */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = style.btnBgColor, contentColor = style.btnTextColor),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = style.btnBgColor,
+                        contentColor = style.btnTextColor
+                    ),
                     shape = RoundedCornerShape(16.dp),
-                    border = if (style.btnBorder != Color.Transparent) BorderStroke(1.dp, style.btnBorder) else null,
+                    border = if (style.btnBorder != Color.Transparent) BorderStroke(
+                        1.dp,
+                        style.btnBorder
+                    ) else null,
                     modifier = Modifier.height(44.dp),
                     contentPadding = PaddingValues(horizontal = 24.dp)
                 ) {

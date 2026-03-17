@@ -2,7 +2,17 @@ package com.lin101.convenience_store.ui.cart
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -13,8 +23,17 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCartCheckout
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,13 +67,19 @@ fun CartScreen(
     Scaffold(
         topBar = {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 返回按钮
                 Box(
-                    modifier = Modifier.size(40.dp).clip(CircleShape).background(LightGrayBg).clickable { navController.popBackStack() },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(LightGrayBg)
+                        .clickable { navController.popBackStack() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -72,17 +97,34 @@ fun CartScreen(
         ) {
             // 如果购物车为空，显示提示
             if (cartItems.isEmpty()) {
-                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text("Your cart is empty", color = Color.Gray, fontSize = 16.sp)
                 }
             } else {
                 // 动态渲染真实的购物车商品列表
-                LazyColumn(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
+                LazyColumn(modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)) {
                     items(cartItems, key = { it.cartId }) { item ->
                         CartItemCard(
                             item = item,
-                            onIncrease = { viewModel.updateQuantity(item.cartId, item.quantity + 1) },
-                            onDecrease = { viewModel.updateQuantity(item.cartId, item.quantity - 1) },
+                            onIncrease = {
+                                viewModel.updateQuantity(
+                                    item.cartId,
+                                    item.quantity + 1
+                                )
+                            },
+                            onDecrease = {
+                                viewModel.updateQuantity(
+                                    item.cartId,
+                                    item.quantity - 1
+                                )
+                            },
                             onRemove = { viewModel.removeItem(item.cartId) }
                         )
                     }
@@ -98,18 +140,27 @@ fun CartScreen(
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     // 动态展示商品总价
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         Text("Subtotal", color = Color.Gray)
                         Text(String.format("$%.2f", totalPrice), color = Color.Gray)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     // 假设运费固定为 $1.50
                     val deliveryFee = if (cartItems.isEmpty()) 0.0 else 1.50
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         Text("Delivery Fee", color = Color.Gray)
                         Text(String.format("$%.2f", deliveryFee), color = Color.Gray)
                     }
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = LightGrayBg)
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 16.dp),
+                        color = LightGrayBg
+                    )
 
                     // 最终支付总额
                     Row(
@@ -118,21 +169,36 @@ fun CartScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Total Amount", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                        Text(String.format("$%.2f", totalPrice + deliveryFee), fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(
+                            String.format("$%.2f", totalPrice + deliveryFee),
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // 结算按钮
                     Button(
                         onClick = { navController.navigate("checkout") },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = BrandGreen),
                         shape = RoundedCornerShape(16.dp),
                         enabled = cartItems.isNotEmpty() // 没东西不让点
                     ) {
-                        Text("Proceed to Checkout", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text(
+                            "Proceed to Checkout",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Icon(Icons.Default.ShoppingCartCheckout, contentDescription = null, tint = Color.Black)
+                        Icon(
+                            Icons.Default.ShoppingCartCheckout,
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
                     }
                 }
             }
@@ -161,7 +227,10 @@ private fun CartItemCard(
     ) {
         // Coil 动态加载真实的商品图片
         Box(
-            modifier = Modifier.size(70.dp).clip(RoundedCornerShape(12.dp)).background(Color.White)
+            modifier = Modifier
+                .size(70.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White)
         ) {
             AsyncImage(
                 model = item.imageUrl ?: "https://via.placeholder.com/150",
@@ -177,7 +246,12 @@ private fun CartItemCard(
         Column(modifier = Modifier.weight(1f)) {
             Text(item.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(String.format("$%.2f", item.price), color = BrandGreen, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+            Text(
+                String.format("$%.2f", item.price),
+                color = BrandGreen,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 16.sp
+            )
         }
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -189,19 +263,26 @@ private fun CartItemCard(
                 Icons.Default.Delete,
                 contentDescription = "Remove",
                 tint = Color.Red.copy(alpha = 0.6f),
-                modifier = Modifier.size(20.dp).clickable { onRemove() }
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable { onRemove() }
             )
             Spacer(modifier = Modifier.height(12.dp))
 
             // 加减框
             Row(
-                modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Color.White).padding(4.dp),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White)
+                    .padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     Icons.Default.Remove,
                     contentDescription = "Minus",
-                    modifier = Modifier.size(16.dp).clickable { onDecrease() }
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clickable { onDecrease() }
                 )
                 Text(
                     text = item.quantity.toString(), // 真实数量
@@ -212,7 +293,9 @@ private fun CartItemCard(
                 Icon(
                     Icons.Default.Add,
                     contentDescription = "Plus",
-                    modifier = Modifier.size(16.dp).clickable { onIncrease() }
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clickable { onIncrease() }
                 )
             }
         }

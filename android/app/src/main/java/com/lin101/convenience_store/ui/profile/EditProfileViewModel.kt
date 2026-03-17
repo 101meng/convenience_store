@@ -8,7 +8,6 @@ import com.lin101.convenience_store.data.api.ApiClient
 import com.lin101.convenience_store.data.local.UserPreferences
 import com.lin101.convenience_store.data.local.dataStore
 import com.lin101.convenience_store.data.model.UpdateProfileRequest
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow

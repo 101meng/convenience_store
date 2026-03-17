@@ -7,7 +7,10 @@ import com.lin101.convenience_store.data.api.ApiClient
 import com.lin101.convenience_store.data.local.UserPreferences
 import com.lin101.convenience_store.data.local.dataStore
 import com.lin101.convenience_store.data.model.OrderModels
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class OrderHistoryViewModel(application: Application) : AndroidViewModel(application) {

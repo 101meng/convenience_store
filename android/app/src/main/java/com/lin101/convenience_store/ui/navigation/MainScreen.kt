@@ -2,12 +2,36 @@ package com.lin101.convenience_store.ui.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,14 +50,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.lin101.convenience_store.data.local.UserPreferences
-import com.lin101.convenience_store.ui.login.LoginScreen
 import com.lin101.convenience_store.ui.cart.CartScreen
 import com.lin101.convenience_store.ui.category.CategoryScreen
-import com.lin101.convenience_store.ui.home.HomeScreen
-import com.lin101.convenience_store.ui.order.OrderHistoryScreen
-import com.lin101.convenience_store.ui.profile.EditProfileScreen
-import com.lin101.convenience_store.ui.product.ProductDetailScreen
 import com.lin101.convenience_store.ui.checkout.CheckoutScreen
+import com.lin101.convenience_store.ui.home.HomeScreen
+import com.lin101.convenience_store.ui.login.LoginScreen
+import com.lin101.convenience_store.ui.order.OrderHistoryScreen
+import com.lin101.convenience_store.ui.product.ProductDetailScreen
+import com.lin101.convenience_store.ui.profile.EditProfileScreen
 import com.lin101.convenience_store.ui.profile.ProfileScreen
 
 val BrandGreen = Color(0xFF4ADE80)
@@ -106,7 +130,7 @@ fun MainScreen() {
                 ProductDetailScreen(navController = navController, productId = productId)
             }
 
-            composable(BottomNavItem.Home.route) { HomeScreen() }
+            composable(BottomNavItem.Home.route) { HomeScreen(navController = navController) }
             composable(BottomNavItem.Category.route) { CategoryScreen(navController) }
             composable(BottomNavItem.Cart.route) { CartScreen(navController) }
             composable(BottomNavItem.Orders.route) { OrderHistoryScreen(navController = navController) }
@@ -122,7 +146,9 @@ fun CustomBottomNavigationBar(navController: NavHostController, currentRoute: St
         BottomNavItem.Orders, BottomNavItem.Profile
     )
 
-    Box(modifier = Modifier.fillMaxWidth().background(Color.Transparent)) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .background(Color.Transparent)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -172,7 +198,12 @@ fun CustomBottomNavigationBar(navController: NavHostController, currentRoute: St
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ShoppingCart, contentDescription = "Cart", tint = Color.White, modifier = Modifier.size(28.dp))
+                Icon(
+                    Icons.Default.ShoppingCart,
+                    contentDescription = "Cart",
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
+                )
             }
         }
     }
@@ -182,10 +213,17 @@ fun CustomBottomNavigationBar(navController: NavHostController, currentRoute: St
 private fun BottomNavIcon(item: BottomNavItem, isSelected: Boolean, onClick: () -> Unit) {
     val color = if (isSelected) BrandGreen else TextGray
     Column(
-        modifier = Modifier.clickable(onClick = onClick).padding(8.dp),
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(item.icon, contentDescription = item.title, tint = color, modifier = Modifier.size(24.dp))
+        Icon(
+            item.icon,
+            contentDescription = item.title,
+            tint = color,
+            modifier = Modifier.size(24.dp)
+        )
         Spacer(modifier = Modifier.height(4.dp))
         Text(item.title, color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold)
     }

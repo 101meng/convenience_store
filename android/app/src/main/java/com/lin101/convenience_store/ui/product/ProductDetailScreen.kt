@@ -2,15 +2,45 @@ package com.lin101.convenience_store.ui.product
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -77,9 +107,17 @@ fun ProductDetailScreen(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = BrandGreen)
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = BrandGreen
+                        )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = data.visuals.message, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(
+                            text = data.visuals.message,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
                     }
                 }
             }
@@ -96,13 +134,18 @@ fun ProductDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
-                        modifier = Modifier.clip(RoundedCornerShape(16.dp)).background(LightGrayBg).padding(8.dp),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(LightGrayBg)
+                            .padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             Icons.Default.Remove,
                             contentDescription = "Minus",
-                            modifier = Modifier.size(24.dp).clickable { viewModel.decreaseQuantity() }
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable { viewModel.decreaseQuantity() }
                         )
                         Text(
                             text = quantity.toString(),
@@ -113,7 +156,9 @@ fun ProductDetailScreen(
                         Icon(
                             Icons.Default.Add,
                             contentDescription = "Plus",
-                            modifier = Modifier.size(24.dp).clickable { viewModel.increaseQuantity() }
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable { viewModel.increaseQuantity() }
                         )
                     }
 
@@ -122,11 +167,17 @@ fun ProductDetailScreen(
                     // 触发真实加入购物车的网络请求
                     Button(
                         onClick = { viewModel.addToCart() },
-                        modifier = Modifier.weight(1f).height(56.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = DarkText),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.ShoppingCart,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Add to Cart", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
@@ -135,7 +186,12 @@ fun ProductDetailScreen(
         }
     ) { paddingValues ->
         if (product == null) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator(color = BrandGreen)
             }
             return@Scaffold
@@ -144,11 +200,15 @@ fun ProductDetailScreen(
         val p = product!!
 
         Column(
-            modifier = Modifier.fillMaxSize().background(Color.White)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
                 .padding(bottom = paddingValues.calculateBottomPadding())
                 .verticalScroll(rememberScrollState())
         ) {
-            Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)) {
                 AsyncImage(
                     model = p.imageUrl ?: "https://via.placeholder.com/400",
                     contentDescription = p.name,
@@ -157,26 +217,45 @@ fun ProductDetailScreen(
                 )
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 40.dp, start = 16.dp, end = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 40.dp, start = 16.dp, end = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Box(
-                        modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White).clickable { navController.popBackStack() },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .clickable { navController.popBackStack() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = DarkText)
                     }
                     Box(
-                        modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White).clickable { },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .clickable { },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorite", tint = DarkText)
+                        Icon(
+                            Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = DarkText
+                        )
                     }
                 }
             }
 
             Column(
-                modifier = Modifier.fillMaxSize().offset(y = (-24).dp).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).background(Color.White).padding(24.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(y = (-24).dp)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(Color.White)
+                    .padding(24.dp)
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     p.tag1?.let { ProductTag(it) }
@@ -185,21 +264,43 @@ fun ProductDetailScreen(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(text = p.name, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = DarkText)
+                Text(
+                    text = p.name,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = DarkText
+                )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "$${p.price}", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = BrandGreen)
+                Text(
+                    text = "$${p.price}",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = BrandGreen
+                )
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     NutritionItem("Calories", "420")
                     NutritionItem("Protein", "12g")
                     NutritionItem("Fat", "18g")
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-                Text("Description", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkText)
+                Text(
+                    "Description",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DarkText
+                )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("This is a delicious product. Perfect for your daily needs.", color = Color.Gray, lineHeight = 24.sp)
+                Text(
+                    "This is a delicious product. Perfect for your daily needs.",
+                    color = Color.Gray,
+                    lineHeight = 24.sp
+                )
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
@@ -209,7 +310,10 @@ fun ProductDetailScreen(
 @Composable
 fun ProductTag(text: String) {
     Box(
-        modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Color(0xFFDCFCE7)).padding(horizontal = 10.dp, vertical = 4.dp)
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0xFFDCFCE7))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
         Text(text = text, color = Color(0xFF166534), fontSize = 10.sp, fontWeight = FontWeight.Bold)
     }
@@ -218,11 +322,19 @@ fun ProductTag(text: String) {
 @Composable
 fun NutritionItem(title: String, value: String) {
     Column(
-        modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(Color(0xFFF7F8FA)).padding(12.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF7F8FA))
+            .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = title, color = Color.Gray, fontSize = 12.sp)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = value, color = Color(0xFF0F172A), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = value,
+            color = Color(0xFF0F172A),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
