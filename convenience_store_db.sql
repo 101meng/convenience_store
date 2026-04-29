@@ -11,7 +11,7 @@
  Target Server Version : 80028
  File Encoding         : 65001
 
- Date: 17/03/2026 21:41:26
+ Date: 23/04/2026 18:04:47
 */
 
 SET NAMES utf8mb4;
@@ -29,7 +29,7 @@ CREATE TABLE `banners`  (
   `is_active` tinyint(1) NULL DEFAULT 1 COMMENT '是否展示：1展示，0下架',
   `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of banners
@@ -51,12 +51,12 @@ CREATE TABLE `cart`  (
   INDEX `product_id`(`product_id`) USING BTREE,
   CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cart_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cart
 -- ----------------------------
-INSERT INTO `cart` VALUES (11, 1, 29, 1);
+INSERT INTO `cart` VALUES (19, 2, 27, 1);
 
 -- ----------------------------
 -- Table structure for categories
@@ -93,7 +93,7 @@ CREATE TABLE `order_items`  (
   INDEX `product_id`(`product_id`) USING BTREE,
   CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of order_items
@@ -108,6 +108,11 @@ INSERT INTO `order_items` VALUES (7, 5, 17, 2, 18.99);
 INSERT INTO `order_items` VALUES (8, 5, 16, 1, 9.99);
 INSERT INTO `order_items` VALUES (9, 5, 6, 3, 8.50);
 INSERT INTO `order_items` VALUES (10, 6, 20, 1, 3.29);
+INSERT INTO `order_items` VALUES (11, 7, 27, 2, 5.99);
+INSERT INTO `order_items` VALUES (12, 7, 25, 1, 2.99);
+INSERT INTO `order_items` VALUES (13, 8, 24, 3, 5.99);
+INSERT INTO `order_items` VALUES (14, 8, 21, 3, 6.99);
+INSERT INTO `order_items` VALUES (15, 9, 29, 1, 6.79);
 
 -- ----------------------------
 -- Table structure for orders
@@ -132,7 +137,7 @@ CREATE TABLE `orders`  (
   INDEX `store_id`(`store_id`) USING BTREE,
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`store_id`) REFERENCES `stores` (`store_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of orders
@@ -143,6 +148,9 @@ INSERT INTO `orders` VALUES (3, 'ORD-2026-ECCCFA5C', 1, NULL, 12.50, 1.50, 14.00
 INSERT INTO `orders` VALUES (4, 'ORD-2026-1944EA76', 1, NULL, 12.50, 1.50, 14.00, 'shipping', 'Alipay', 'completed', '宇宙中心大街 888', '2026-03-15 15:29:53');
 INSERT INTO `orders` VALUES (5, 'ORD-2026-7E09804E', 1, 1, 73.47, 0.00, 73.47, 'pickup', 'WeChat Pay', 'completed', NULL, '2026-03-15 15:29:53');
 INSERT INTO `orders` VALUES (6, 'ORD-2026-7DB756DB', 1, NULL, 3.29, 1.50, 4.79, 'shipping', 'WeChat Pay', 'completed', '宇宙中心大街 888', '2026-03-17 21:12:46');
+INSERT INTO `orders` VALUES (7, 'ORD-2026-DC6C6068', 1, NULL, 14.97, 1.50, 16.47, 'shipping', 'WeChat Pay', 'completed', '宇宙中心大街 888', '2026-04-23 17:41:17');
+INSERT INTO `orders` VALUES (8, 'ORD-2026-3EC95BB0', 1, NULL, 38.94, 1.50, 40.44, 'shipping', 'WeChat Pay', 'completed', '宇宙中心大街 888', '2026-04-23 17:46:17');
+INSERT INTO `orders` VALUES (9, 'ORD-2026-28654877', 2, NULL, 6.79, 1.50, 8.29, 'shipping', 'Apple Pay', 'completed', 'Central Park West, NY 10025', '2026-04-23 17:56:21');
 
 -- ----------------------------
 -- Table structure for products
@@ -169,7 +177,7 @@ CREATE TABLE `products`  (
   PRIMARY KEY (`product_id`) USING BTREE,
   INDEX `category_id`(`category_id`) USING BTREE,
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 29 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of products

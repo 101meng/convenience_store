@@ -37,4 +37,21 @@ public class JwtUtils {
                 .signWith(getSecretKey())        // 使用密钥签名
                 .compact();
     }
+
+    /**
+     * 解析 JWT Token 并获取 UserId
+     * 如果 Token 无效或已过期，会抛出异常，这里捕获后返回 null
+     */
+    public Integer getUserIdFromToken(String token) {
+        try {
+            return Integer.parseInt(Jwts.parser()
+                    .verifyWith(getSecretKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject());
+        } catch (Exception e) {
+            return null; // Token 验证失败
+        }
+    }
 }

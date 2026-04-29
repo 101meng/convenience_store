@@ -22,11 +22,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.Button
@@ -68,6 +69,12 @@ val LightGreenBg = Color(0xFFE8F5E9)
 val OrangeHighlight = Color(0xFFF97316)
 val OrangeLightBg = Color(0xFFFFF7ED)
 
+// AI 专属极简色板
+val AiLightPurple = Color(0xFFF4F0FF)
+val AiDeepPurple = Color(0xFF6B21A8)
+val AiAccentPurple = Color(0xFF9333EA)
+val AiInnerFrame = Color(0xFFE9D5FF)
+
 @Composable
 fun HomeScreen(
     navController: NavHostController,
@@ -75,7 +82,7 @@ fun HomeScreen(
 ) {
     val banners by viewModel.banners.collectAsState()
     val flashSales by viewModel.flashSales.collectAsState()
-    val newArrivals by viewModel.newArrivals.collectAsState() // 收集新品数据
+    val newArrivals by viewModel.newArrivals.collectAsState()
 
     Scaffold(containerColor = Color.White) { paddingValues ->
         LazyColumn(
@@ -85,22 +92,13 @@ fun HomeScreen(
         ) {
             item { TopSearchBar() }
             item { Spacer(modifier = Modifier.height(16.dp)) }
-
-            // 轮播图 (真实数据)
             item { PromoBanner(banners, navController) }
-
             item { Spacer(modifier = Modifier.height(24.dp)) }
-
-            // 中间双列促销模块 (真实秒杀数据)
             item { PromoCardsSection(flashSales, navController) }
-
             item { Spacer(modifier = Modifier.height(24.dp)) }
-
-            // 新品推荐标题
             item { SectionTitle("Daily New Arrivals") }
             item { Spacer(modifier = Modifier.height(8.dp)) }
 
-            // 【核心修改】：用 LazyColumn 的 items 渲染真实的列表数据
             if (newArrivals.isEmpty()) {
                 item {
                     Text(
@@ -222,22 +220,13 @@ private fun PromoBanner(
                     fontWeight = FontWeight.ExtraBold,
                     lineHeight = 28.sp
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Up to 40% Off Produce", color = Color(0xCCFFFFFF), fontSize = 12.sp)
-                Spacer(modifier = Modifier.height(12.dp))
-
                 Button(
                     onClick = { },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
-                    modifier = Modifier.height(32.dp)
+                    modifier = Modifier.height(32.dp).padding(top = 8.dp)
                 ) {
-                    Text(
-                        text = "Order Now",
-                        color = DarkGreen,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("Order Now", color = DarkGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -246,10 +235,16 @@ private fun PromoBanner(
 
     val pagerState = rememberPagerState(pageCount = { banners.size })
 
-    LaunchedEffect(pagerState.currentPage) {
-        delay(3000)
-        val nextPage = (pagerState.currentPage + 1) % banners.size
-        pagerState.animateScrollToPage(nextPage)
+    LaunchedEffect(banners.size) {
+        while (true) {
+            delay(3000)
+            if (!pagerState.isScrollInProgress) {
+                val nextPage = (pagerState.currentPage + 1) % banners.size
+                try {
+                    pagerState.animateScrollToPage(nextPage)
+                } catch (e: Exception) {}
+            }
+        }
     }
 
     Box(
@@ -277,12 +272,8 @@ private fun PromoBanner(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             repeat(banners.size) { iteration ->
-                val color =
-                    if (pagerState.currentPage == iteration) BrandGreen else Color.White.copy(alpha = 0.5f)
-                Box(modifier = Modifier
-                    .size(6.dp)
-                    .clip(CircleShape)
-                    .background(color))
+                val color = if (pagerState.currentPage == iteration) BrandGreen else Color.White.copy(alpha = 0.5f)
+                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(color))
             }
         }
     }
@@ -301,7 +292,7 @@ private fun PromoCardsSection(
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Flash Sale Box
+        // Flash Sale Box 保持不变
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -319,9 +310,7 @@ private fun PromoCardsSection(
                     if (original > 0) ((original - flashProduct.price) / original * 100).roundToInt() else 0
 
                 var remainingSeconds by remember(flashProduct) {
-                    mutableStateOf(
-                        calculateRemainingSeconds(flashProduct.flashSaleEndTime)
-                    )
+                    mutableStateOf(calculateRemainingSeconds(flashProduct.flashSaleEndTime))
                 }
 
                 LaunchedEffect(flashProduct) {
@@ -337,12 +326,7 @@ private fun PromoCardsSection(
 
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Bolt,
-                            contentDescription = null,
-                            tint = OrangeHighlight,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        Icon(Icons.Default.Bolt, contentDescription = null, tint = OrangeHighlight, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Flash Sale", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
@@ -352,19 +336,9 @@ private fun PromoCardsSection(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TimePill(if (remainingSeconds > 0) hours else "00")
-                        Text(
-                            ":",
-                            color = OrangeHighlight,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text(":", color = OrangeHighlight, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         TimePill(if (remainingSeconds > 0) minutes else "00")
-                        Text(
-                            ":",
-                            color = OrangeHighlight,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text(":", color = OrangeHighlight, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         TimePill(if (remainingSeconds > 0) seconds else "00")
                     }
                 }
@@ -393,12 +367,7 @@ private fun PromoCardsSection(
                             .background(Color.White)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Text(
-                            "-$discountPercent%",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Red
-                        )
+                        Text("-$discountPercent%", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Red)
                     }
                 }
             } else {
@@ -407,45 +376,38 @@ private fun PromoCardsSection(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        Icons.Default.AccessTime,
-                        contentDescription = null,
-                        tint = Color.LightGray,
-                        modifier = Modifier.size(40.dp)
-                    )
+                    Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(40.dp))
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "No Flash Deals",
-                        color = Color.Gray,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("No Flash Deals", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
 
-        // Fresh Bento Box (保持原有静态)
+        // ================= 【核心重构】：AI Smart Planner 模块 =================
         Box(
             modifier = Modifier
                 .weight(1f)
                 .height(190.dp)
                 .clip(RoundedCornerShape(24.dp))
-                .background(LightGreenBg)
+                .background(AiLightPurple)
+                // 预留了跳转到 AI 专属界面的路由
+                .clickable { navController.navigate("ai_planner") }
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Default.Fastfood,
-                        contentDescription = null,
-                        tint = DarkGreen,
+                        Icons.Default.AutoAwesome,
+                        contentDescription = "AI Magic",
+                        tint = AiDeepPurple,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Fresh Bento", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text("AI Planner", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = AiDeepPurple)
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Daily prepped meals", color = Color.Gray, fontSize = 11.sp)
+                Text("Tailored daily combos", color = AiDeepPurple.copy(alpha = 0.7f), fontSize = 11.sp)
             }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -453,26 +415,36 @@ private fun PromoCardsSection(
                     .align(Alignment.BottomCenter)
                     .padding(8.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.DarkGray)
+                    .background(AiInnerFrame)
             ) {
+                // 中心放置代表 AI 计算的芯片动效图标
+                Icon(
+                    Icons.Default.Memory,
+                    contentDescription = null,
+                    tint = AiAccentPurple.copy(alpha = 0.4f),
+                    modifier = Modifier.align(Alignment.Center).size(48.dp)
+                )
+
+                // 引导跳转的箭头按钮
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(8.dp)
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(BrandGreen),
+                        .background(AiAccentPurple),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Default.Add,
-                        contentDescription = "Add",
+                        Icons.Default.ArrowForward,
+                        contentDescription = "Go to AI",
                         tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
                 }
             }
         }
+        // ====================================================================
     }
 }
 
@@ -502,19 +474,11 @@ private fun SectionTitle(title: String) {
     }
 }
 
-/**
- * 【核心重构】：支持真实数据的 ProductItem
- * 样式 100% 保持了你原来的 Box、Spacer 和文字间距。
- */
-/**
- * 【核心重构】：支持真实数据的 ProductItem，并将 Add 按钮绑定跳转逻辑
- */
 @Composable
 private fun ProductItem(product: com.lin101.convenience_store.data.model.Product, navController: NavHostController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            // 点击整行可以跳往该商品的详情页
             .clickable { navController.navigate("product_detail/${product.productId}") }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -522,10 +486,7 @@ private fun ProductItem(product: com.lin101.convenience_store.data.model.Product
         AsyncImage(
             model = product.imageUrl,
             contentDescription = product.name,
-            modifier = Modifier
-                .size(70.dp)
-                .clip(CircleShape)
-                .background(LightGray),
+            modifier = Modifier.size(70.dp).clip(CircleShape).background(LightGray),
             contentScale = ContentScale.Crop
         )
 
@@ -539,12 +500,8 @@ private fun ProductItem(product: com.lin101.convenience_store.data.model.Product
             Text(text = "$${product.price}", color = BrandGreen, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
         }
 
-        // 【修改点】：给 Add 按钮赋予和点击整行一样的跳转能力
         Button(
-            onClick = {
-                // 提取商品的真实 ID，拼接成路由路径，命令 Navigation 进行跳转
-                navController.navigate("product_detail/${product.productId}")
-            },
+            onClick = { navController.navigate("product_detail/${product.productId}") },
             colors = ButtonDefaults.buttonColors(containerColor = LightGray, contentColor = Color.Black),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.height(36.dp),

@@ -64,4 +64,15 @@ interface StoreApiService {
 
     @GET("api/home/index")
     suspend fun getHomeData(): BaseResponse<HomeData>
+
+    @POST("api/order/pay")
+    suspend fun payOrder(@Query("orderId") orderId: Int): BaseResponse<Any>
+
+    @POST("api/order/receive")
+    suspend fun receiveOrder(@Query("orderId") orderId: Int): BaseResponse<Any>
+
+
+    // ================= AI 智能模块 =================
+    @POST("api/ai/planner")
+    suspend fun getAiRecommendation(@Body request: com.lin101.convenience_store.data.model.AiModels.AiPlannerReq): BaseResponse<com.lin101.convenience_store.data.model.AiModels.AiPlannerResp>
 }

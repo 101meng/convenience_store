@@ -21,7 +21,6 @@ class OrderModels {
         val priceAtTime: Double
     )
 
-    // 找到 OrderVO，修改成这样：
     data class OrderVO(
         val orderId: Int,
         val orderSn: String?,
@@ -29,6 +28,7 @@ class OrderModels {
         val status: String?,
         val orderType: String?,
         val createdAt: String?,
+        val deliveryAddress: String?,
         val items: List<OrderItemVO>
     )
 }

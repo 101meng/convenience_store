@@ -46,4 +46,30 @@ class OrderHistoryViewModel(application: Application) : AndroidViewModel(applica
             }
         }
     }
+
+    fun payOrder(orderId: Int) {
+        viewModelScope.launch {
+            try {
+                val response = ApiClient.storeService.payOrder(orderId)
+                if (response.code == 200) {
+                    fetchOrders() // 支付成功，重新拉取最新订单状态
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun receiveOrder(orderId: Int) {
+        viewModelScope.launch {
+            try {
+                val response = ApiClient.storeService.receiveOrder(orderId)
+                if (response.code == 200) {
+                    fetchOrders() // 收货成功，重新拉取最新订单状态
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }

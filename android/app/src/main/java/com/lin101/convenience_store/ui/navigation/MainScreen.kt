@@ -50,6 +50,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.lin101.convenience_store.data.local.UserPreferences
+import com.lin101.convenience_store.ui.ai.AiPlannerScreen  // 【新增导入】导入 AI 页面
 import com.lin101.convenience_store.ui.cart.CartScreen
 import com.lin101.convenience_store.ui.category.CategoryScreen
 import com.lin101.convenience_store.ui.checkout.CheckoutScreen
@@ -121,6 +122,7 @@ fun MainScreen() {
             composable("login") { LoginScreen(navController) }
             composable("checkout") { CheckoutScreen(navController) }
             composable("edit_profile") { EditProfileScreen(navController) }
+            composable("ai_planner") { AiPlannerScreen(navController) }
 
             composable(
                 route = "product_detail/{productId}",

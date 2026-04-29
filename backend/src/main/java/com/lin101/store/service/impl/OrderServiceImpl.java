@@ -135,6 +135,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         order.setTotalAmount(subtotal);
         order.setDeliveryFee(deliveryFee);
         order.setActualAmount(actualAmount);
+        order.setDeliveryAddress(req.getDeliveryAddress());
         order.setOrderType(req.getOrderType());
         order.setPaymentMethod(req.getPaymentMethod());
         // 为了业务演示闭环，下单后直接将初始状态设为已完成

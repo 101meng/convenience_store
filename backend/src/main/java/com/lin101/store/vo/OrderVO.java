@@ -11,6 +11,6 @@ public class OrderVO {
     private String status;
     private String orderType;
     private String createdAt;
-    // 包含的商品明细列表
+    private String deliveryAddress;
     private List<OrderItemVO> items;
 }
