@@ -2,18 +2,7 @@ package com.lin101.convenience_store.ui.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
@@ -21,17 +10,8 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,8 +29,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.lin101.convenience_store.data.local.UserPreferences
-import com.lin101.convenience_store.ui.ai.AiPlannerScreen  // 【新增导入】导入 AI 页面
+import com.lin101.convenience_store.data.model.CartItem
+import com.lin101.convenience_store.ui.ai.AiDietitianScreen
+import com.lin101.convenience_store.ui.ai.AiPlannerScreen
 import com.lin101.convenience_store.ui.cart.CartScreen
 import com.lin101.convenience_store.ui.category.CategoryScreen
 import com.lin101.convenience_store.ui.checkout.CheckoutScreen
@@ -86,7 +70,6 @@ fun MainScreen() {
         }
     }
 
-    // 在决定好去哪之前，显示绿色的加载动画
     if (initialRoute == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = BrandGreen)
@@ -94,17 +77,13 @@ fun MainScreen() {
         return
     }
 
-    // 路由锁定后，开始构建导航树
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    val currentRoute = navBackStackEntry?.destination?.route?.substringBefore("/")
 
     val bottomBarRoutes = listOf(
-        BottomNavItem.Home.route,
-        BottomNavItem.Category.route,
-        BottomNavItem.Cart.route,
-        BottomNavItem.Orders.route,
-        BottomNavItem.Profile.route
+        BottomNavItem.Home.route, BottomNavItem.Category.route, BottomNavItem.Cart.route,
+        BottomNavItem.Orders.route, BottomNavItem.Profile.route
     )
 
     Scaffold(
@@ -116,13 +95,32 @@ fun MainScreen() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = initialRoute!!, // 使用刚才锁定好的起点
+            startDestination = initialRoute!!,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("login") { LoginScreen(navController) }
             composable("checkout") { CheckoutScreen(navController) }
             composable("edit_profile") { EditProfileScreen(navController) }
+
+            // 之前的 AI 场景搭配页面
             composable("ai_planner") { AiPlannerScreen(navController) }
+
+            // ==========================================
+            // 【新增】：接收 JSON 参数的 AI 营养雷达页面路由
+            // ==========================================
+            composable(
+                route = "ai_dietitian/{cartJson}",
+                arguments = listOf(navArgument("cartJson") { type = NavType.StringType })
+            ) { backStackEntry ->
+                // 取出 JSON 字符串
+                val cartJson = backStackEntry.arguments?.getString("cartJson") ?: "[]"
+                // 转换回 List<CartItem>
+                val listType = object : TypeToken<List<CartItem>>() {}.type
+                val cartItems: List<CartItem> = Gson().fromJson(cartJson, listType)
+
+                // 启动页面并传递数据
+                AiDietitianScreen(navController = navController, cartItems = cartItems)
+            }
 
             composable(
                 route = "product_detail/{productId}",
@@ -148,9 +146,7 @@ fun CustomBottomNavigationBar(navController: NavHostController, currentRoute: St
         BottomNavItem.Orders, BottomNavItem.Profile
     )
 
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .background(Color.Transparent)) {
+    Box(modifier = Modifier.fillMaxWidth().background(Color.Transparent)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

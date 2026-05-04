@@ -75,4 +75,9 @@ interface StoreApiService {
     // ================= AI 智能模块 =================
     @POST("api/ai/planner")
     suspend fun getAiRecommendation(@Body request: com.lin101.convenience_store.data.model.AiModels.AiPlannerReq): BaseResponse<com.lin101.convenience_store.data.model.AiModels.AiPlannerResp>
+
+    // AI 营养师分析接口
+    @POST("api/ai/dietitian")
+    suspend fun analyzeNutrition(@Body request: com.lin101.convenience_store.data.model.AiModels.AiDietitianReq): BaseResponse<com.lin101.convenience_store.data.model.AiModels.AiDietitianResp>
+
 }

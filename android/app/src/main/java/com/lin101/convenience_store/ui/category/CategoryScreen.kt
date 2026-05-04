@@ -25,11 +25,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BakeryDining
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Cookie
+import androidx.compose.material.icons.filled.EmojiFoodBeverage
 import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.Icecream
 import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.RamenDining
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -181,12 +185,16 @@ private fun CategorySidebarItem(category: Category, isSelected: Boolean, onClick
     val contentColor = if (isSelected) Color.White else TextGray
     val textColor = if (isSelected) BrandGreen else TextGray
 
-    // 图标映射逻辑：根据数据库分类名称匹配对应的 Material 图标
+// 图标映射逻辑：根据数据库分类名称精准匹配对应的 Material 图标
     val icon = when (category.categoryName) {
-        "Fresh" -> Icons.Default.Restaurant
+        "Fresh Bento" -> Icons.Default.Restaurant
         "Snacks" -> Icons.Default.Cookie
         "Drinks" -> Icons.Default.LocalDrink
         "Bakery" -> Icons.Default.BakeryDining
+        "Desserts" -> Icons.Default.Icecream           // 甜点：冰淇淋图标
+        "Dairy" -> Icons.Default.EmojiFoodBeverage     // 乳制品：带杯子的饮料图标
+        "Instant Food" -> Icons.Default.RamenDining    // 速食：面条/快餐图标 (如果没有RamenDining可用Fastfood)
+        "Personal Care" -> Icons.Default.Spa           // 个人护理：Spa/莲花图标
         else -> Icons.Default.Category
     }
 
@@ -209,10 +217,14 @@ private fun CategorySidebarItem(category: Category, isSelected: Boolean, onClick
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            category.categoryName.uppercase(),
-            fontSize = 10.sp,
+            text = category.categoryName.uppercase(),
+            fontSize = 9.sp,                    // 稍微缩小一点点字号
             fontWeight = FontWeight.Bold,
-            color = textColor
+            color = textColor,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center, // 👈 核心：多行时居中对齐
+            maxLines = 2,                       // 👈 核心：允许最多折成 2 行
+            lineHeight = 11.sp,                 // 控制换行后的上下行间距
+            modifier = Modifier.padding(horizontal = 4.dp) // 给左右留一点安全距离，防止贴边
         )
     }
 }

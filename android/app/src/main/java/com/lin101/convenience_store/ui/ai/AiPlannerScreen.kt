@@ -1,9 +1,7 @@
 package com.lin101.convenience_store.ui.ai
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -31,11 +29,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.lin101.convenience_store.data.model.Product
-
-val AiDeepPurple = Color(0xFF6B21A8)
-val AiLightPurple = Color(0xFFF4F0FF)
-val UserBubbleColor = Color(0xFF1E293B)
-val BrandGreen = Color(0xFF4ADE80)
+// 【核心修改】：统一从你的 Color.kt 导入颜色，不自己重复定义
+import com.lin101.convenience_store.ui.theme.AiDeepPurple
+import com.lin101.convenience_store.ui.theme.AiLightPurple
+import com.lin101.convenience_store.ui.theme.BrandGreen
+import com.lin101.convenience_store.ui.theme.UserBubbleColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,7 +69,6 @@ fun AiPlannerScreen(navController: NavController, viewModel: AiPlannerViewModel 
             )
         },
         bottomBar = {
-            // 底部输入框
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -135,7 +132,6 @@ fun ChatBubble(message: ChatMessage, onAddAllToCart: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = if (message.isAi) Alignment.Start else Alignment.End
     ) {
-        // 聊天气泡文字
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
@@ -158,7 +154,6 @@ fun ChatBubble(message: ChatMessage, onAddAllToCart: () -> Unit) {
             )
         }
 
-        // 如果是 AI 返回的推荐商品，直接在气泡下方渲染横向画廊
         if (message.isAi && !message.products.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -167,7 +162,6 @@ fun ChatBubble(message: ChatMessage, onAddAllToCart: () -> Unit) {
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
-            // 一键加入购物车按钮
             Button(
                 onClick = onAddAllToCart,
                 colors = ButtonDefaults.buttonColors(containerColor = BrandGreen, contentColor = Color.Black),

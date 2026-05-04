@@ -1,5 +1,6 @@
 package com.lin101.convenience_store.ui.cart
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,16 +21,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCartCheckout
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,260 +48,178 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.google.gson.Gson
 import com.lin101.convenience_store.data.model.CartItem
+import java.util.Locale
 
 val BrandGreen = Color(0xFF4ADE80)
-val LightGrayBg = Color(0xFFF7F8FA)
+val BgOffWhite = Color(0xFFF7F8FA)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartScreen(
-    navController: NavHostController,
-    viewModel: CartViewModel = viewModel() // 注入我们刚才写的 ViewModel
-) {
-    // 监听 ViewModel 中的状态
+fun CartScreen(navController: NavController, viewModel: CartViewModel = viewModel()) {
     val cartItems by viewModel.cartItems.collectAsState()
     val totalPrice by viewModel.totalPrice.collectAsState()
 
-    // 每次进入页面都刷新一下最新的购物车数据
+
     LaunchedEffect(Unit) {
         viewModel.fetchCartList()
     }
-
     Scaffold(
+        containerColor = BgOffWhite,
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 返回按钮
-                Box(
+            CenterAlignedTopAppBar(
+                title = { Text("My Cart", fontWeight = FontWeight.Black, fontSize = 20.sp) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = BgOffWhite)
+            )
+        },
+        bottomBar = {
+            if (cartItems.isNotEmpty()) {
+                Column(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(LightGrayBg)
-                        .clickable { navController.popBackStack() },
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .background(Color.White, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                        .padding(24.dp)
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                }
-                Text("My Cart", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.size(40.dp)) // 占位保持标题居中
-            }
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(Color.White)
-        ) {
-            // 如果购物车为空，显示提示
-            if (cartItems.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Your cart is empty", color = Color.Gray, fontSize = 16.sp)
-                }
-            } else {
-                // 动态渲染真实的购物车商品列表
-                LazyColumn(modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp)) {
-                    items(cartItems, key = { it.cartId }) { item ->
-                        CartItemCard(
-                            item = item,
-                            onIncrease = {
-                                viewModel.updateQuantity(
-                                    item.cartId,
-                                    item.quantity + 1
-                                )
-                            },
-                            onDecrease = {
-                                viewModel.updateQuantity(
-                                    item.cartId,
-                                    item.quantity - 1
-                                )
-                            },
-                            onRemove = { viewModel.removeItem(item.cartId) }
-                        )
-                    }
-                }
-            }
-
-            // 底部结算区域
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                color = Color.White,
-                shadowElevation = 16.dp
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    // 动态展示商品总价
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                    // ==========================================
+                    // 【新增】：AI 营养分析雷达入口按钮
+                    // ==========================================
+                    Button(
+                        onClick = {
+                            // 1. 将购物车列表转换为 JSON 字符串
+                            val cartJson = Gson().toJson(cartItems)
+                            // 2. 对 JSON 进行 URL 编码，防止特殊字符阻断路由
+                            val encodedJson = Uri.encode(cartJson)
+                            // 3. 携带参数跳转到 AI 页面
+                            navController.navigate("ai_dietitian/$encodedJson")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .padding(bottom = 8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFF4F0FF),
+                            contentColor = Color(0xFF9333EA)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Subtotal", color = Color.Gray)
-                        Text(String.format("$%.2f", totalPrice), color = Color.Gray)
+                        Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("AI Nutritional Analysis", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    // 假设运费固定为 $1.50
-                    val deliveryFee = if (cartItems.isEmpty()) 0.0 else 1.50
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Delivery Fee", color = Color.Gray)
-                        Text(String.format("$%.2f", deliveryFee), color = Color.Gray)
-                    }
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 16.dp),
-                        color = LightGrayBg
-                    )
 
-                    // 最终支付总额
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Total Amount", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                        Text(
-                            String.format("$%.2f", totalPrice + deliveryFee),
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.ExtraBold
-                        )
+                        Column {
+                            Text("Total", color = Color.Gray, fontSize = 12.sp)
+                            Text(
+                                text = String.format(Locale.US, "$%.2f", totalPrice),
+                                fontWeight = FontWeight.Black,
+                                fontSize = 24.sp
+                            )
+                        }
+                        Button(
+                            onClick = { navController.navigate("checkout") },
+                            colors = ButtonDefaults.buttonColors(containerColor = BrandGreen),
+                            shape = CircleShape,
+                            modifier = Modifier.height(50.dp)
+                        ) {
+                            Text("Checkout", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(Icons.Default.ShoppingCartCheckout, contentDescription = null, modifier = Modifier.size(18.dp))
+                        }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // 结算按钮
-                    Button(
-                        onClick = { navController.navigate("checkout") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandGreen),
-                        shape = RoundedCornerShape(16.dp),
-                        enabled = cartItems.isNotEmpty() // 没东西不让点
-                    ) {
-                        Text(
-                            "Proceed to Checkout",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            Icons.Default.ShoppingCartCheckout,
-                            contentDescription = null,
-                            tint = Color.Black
-                        )
-                    }
+                }
+            }
+        }
+    ) { paddingValues ->
+        if (cartItems.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Box(
+                    modifier = Modifier.size(100.dp).background(Color.White, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("🛒", fontSize = 40.sp)
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Your cart is empty", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(cartItems) { item ->
+                    CartItemRow(
+                        item = item,
+                        onIncrease = { viewModel.updateQuantity(item.cartId, item.quantity + 1) },
+                        onDecrease = { viewModel.updateQuantity(item.cartId, item.quantity - 1) },
+                        onRemove = { viewModel.removeItem(item.cartId) }
+                    )
                 }
             }
         }
     }
 }
 
-/**
- * 提取出来的真实购物车商品卡片组件
- */
 @Composable
-private fun CartItemCard(
-    item: CartItem,
-    onIncrease: () -> Unit,
-    onDecrease: () -> Unit,
-    onRemove: () -> Unit
-) {
+fun CartItemRow(item: CartItem, onIncrease: () -> Unit, onDecrease: () -> Unit, onRemove: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(LightGrayBg)
+            .background(Color.White)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Coil 动态加载真实的商品图片
-        Box(
-            modifier = Modifier
-                .size(70.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.White)
-        ) {
-            AsyncImage(
-                model = item.imageUrl ?: "https://via.placeholder.com/150",
-                contentDescription = item.name,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        }
-
+        AsyncImage(
+            model = item.imageUrl,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(70.dp).clip(RoundedCornerShape(12.dp)).background(BgOffWhite)
+        )
         Spacer(modifier = Modifier.width(12.dp))
-
-        // 商品名和价格
         Column(modifier = Modifier.weight(1f)) {
             Text(item.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                String.format("$%.2f", item.price),
-                color = BrandGreen,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 16.sp
-            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(String.format(Locale.US, "$%.2f", item.price), color = BrandGreen, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
         }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // 数量加减与删除控制器
         Column(horizontalAlignment = Alignment.End) {
-            // 删除按钮
             Icon(
                 Icons.Default.Delete,
                 contentDescription = "Remove",
                 tint = Color.Red.copy(alpha = 0.6f),
-                modifier = Modifier
-                    .size(20.dp)
-                    .clickable { onRemove() }
+                modifier = Modifier.size(20.dp).clickable { onRemove() }
             )
             Spacer(modifier = Modifier.height(12.dp))
-
-            // 加减框
             Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.White)
-                    .padding(4.dp),
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(BgOffWhite).padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    Icons.Default.Remove,
-                    contentDescription = "Minus",
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clickable { onDecrease() }
-                )
-                Text(
-                    text = item.quantity.toString(), // 真实数量
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Plus",
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clickable { onIncrease() }
-                )
+                Icon(Icons.Default.Remove, contentDescription = "Minus", modifier = Modifier.size(16.dp).clickable { onDecrease() })
+                Text(item.quantity.toString(), modifier = Modifier.padding(horizontal = 8.dp), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Icon(Icons.Default.Add, contentDescription = "Plus", modifier = Modifier.size(16.dp).clickable { onIncrease() })
             }
         }
     }

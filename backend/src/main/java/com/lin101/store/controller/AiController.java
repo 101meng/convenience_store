@@ -6,6 +6,7 @@ import com.lin101.store.service.AiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,6 +34,17 @@ public class AiController {
             return Result.success(ResultCode.SUCCESS, aiResult);
         } catch (Exception e) {
             e.printStackTrace();
+            return Result.failed(ResultCode.FAILED);
+        }
+    }
+    @PostMapping("/dietitian")
+    public Result<Map<String, Object>> analyzeDiet(@RequestBody Map<String, Object> request) {
+        try {
+            // 获取购物车商品列表
+            List<Map<String, Object>> cartItems = (List<Map<String, Object>>) request.get("cartItems");
+            Map<String, Object> result = aiService.analyzeNutrition(cartItems);
+            return Result.success(ResultCode.SUCCESS, result);
+        } catch (Exception e) {
             return Result.failed(ResultCode.FAILED);
         }
     }

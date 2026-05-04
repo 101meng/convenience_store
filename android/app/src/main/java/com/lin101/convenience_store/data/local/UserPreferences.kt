@@ -25,10 +25,22 @@ class UserPreferences(private val context: Context) {
         val USER_ADDRESS_KEY = stringPreferencesKey("user_address")
         val USER_BALANCE_KEY: Preferences.Key<Double>
             get() = doublePreferencesKey("user_balance")
+
+        val SHOPPING_MODE_KEY = stringPreferencesKey("shopping_mode")
+        val CURRENT_LOCATION_NAME_KEY = stringPreferencesKey("current_location_name")
     }
 
-    val tokenFlow: Flow<String?> = context.dataStore.data.map { preferences ->
-        preferences[TOKEN_KEY]
+    val tokenFlow: Flow<String?> = context.dataStore.data.map { it[TOKEN_KEY] }
+
+    // 【新增】：暴露用户的真实收货地址流
+    val userAddressFlow: Flow<String> = context.dataStore.data.map { it[USER_ADDRESS_KEY] ?: "" }
+
+    // 如果没数据，最底层的默认值退化为“自提”和“总店”
+    val shoppingModeFlow: Flow<String> = context.dataStore.data.map {
+        it[SHOPPING_MODE_KEY] ?: "pickup"
+    }
+    val currentLocationNameFlow: Flow<String> = context.dataStore.data.map {
+        it[CURRENT_LOCATION_NAME_KEY] ?: "Market Street Flagship"
     }
 
     suspend fun saveAuthInfo(token: String, user: User) {
@@ -38,14 +50,30 @@ class UserPreferences(private val context: Context) {
             prefs[USER_PHONE_KEY] = user.phone
             prefs[USER_NICKNAME_KEY] = user.nickname
             prefs[USER_AVATAR_KEY] = user.avatarUrl ?: ""
-            prefs[USER_ADDRESS_KEY] = user.address ?: ""
+
+            val safeAddress = user.address ?: ""
+            prefs[USER_ADDRESS_KEY] = safeAddress
             prefs[USER_BALANCE_KEY] = user.balance ?: 0.0
+            if (safeAddress.isEmpty()) {
+                // 如果新用户没有地址，强制默认让他去最近的门店自提！
+                prefs[SHOPPING_MODE_KEY] = "pickup"
+                prefs[CURRENT_LOCATION_NAME_KEY] = "Market Street Flagship"
+            } else {
+                // 如果是老用户且有地址，默认给他送到家！
+                prefs[SHOPPING_MODE_KEY] = "shipping"
+                prefs[CURRENT_LOCATION_NAME_KEY] = safeAddress
+            }
+        }
+    }
+
+    suspend fun updateShoppingMode(mode: String, locationName: String) {
+        context.dataStore.edit { prefs ->
+            prefs[SHOPPING_MODE_KEY] = mode
+            prefs[CURRENT_LOCATION_NAME_KEY] = locationName
         }
     }
 
     suspend fun clearAuthInfo() {
-        context.dataStore.edit { prefs ->
-            prefs.clear()
-        }
+        context.dataStore.edit { prefs -> prefs.clear() }
     }
 }
