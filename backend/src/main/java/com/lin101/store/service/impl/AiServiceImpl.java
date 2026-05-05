@@ -213,5 +213,14 @@ public class AiServiceImpl implements AiService {
         String aiContent = rootNode.path("choices").get(0).path("message").path("content").asText();
 
         return aiContent.replaceAll("(?i)```json", "").replaceAll("```", "").trim();
+    }// ==========================================
+    // 业务 3：后台 AI 店长助理对话
+    // ==========================================
+    @Override
+    public String adminChat(String prompt) throws Exception {
+        String systemPrompt = "You are an AI Retail Store Manager Assistant for 'Bento Box'. Answer the user briefly and professionally. You can help analyze data, draft marketing emails, or give store advice.";
+        // 直接复用底层的通信方法，极致优雅
+        return callLongCatApi(systemPrompt, prompt);
     }
+
 }

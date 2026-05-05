@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme {
+  /* 调柔和的主题色，去掉了原本的刺眼感 */
+  --color-primary: #4f46e5; 
+  --color-bg-light: #f8fafc;
+  
+  /* 更轻盈、空气感的阴影 */
+  --shadow-bento: 0 10px 40px -10px rgba(0, 0, 0, 0.03);
+  --shadow-bento-hover: 0 20px 40px -10px rgba(79, 70, 229, 0.06);
+  
+  /* 收敛圆角，24px 是企业级 SaaS 最优雅的弧度 */
+  --radius-card: 24px;
+  --radius-layout: 24px;
+}
+
+@layer base {
+  body {
+    /* 基础字体颜色调为 700，增加一点点字间距让文字有呼吸感 */
+    @apply bg-bg-light text-slate-700 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.01em; 
+  }
+}
+
+:root {
+  --el-border-radius-base: 12px;
+  --el-color-primary: #4f46e5;
+}
+
+.el-table {
+  --el-table-border-color: #f1f5f9;
+  font-size: 14px !important; /* 稍微放大一点字号，避免挤在一起 */
+}
+
+/* 表头不再用纯黑，改为柔和的灰蓝色 */
+.el-table__header th {
+  color: #64748b !important;
+  font-weight: 600 !important; /* 从 800 降为 600 */
+  text-transform: uppercase;
+  font-size: 12px !important;
+  letter-spacing: 0.05em;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+}

@@ -13,4 +13,7 @@ public interface AiService {
      * 购物车营养师分析
      */
     Map<String, Object> analyzeNutrition(List<Map<String, Object>> cartItems);
+
+    // 后台 AI 助理对话
+    String adminChat(String prompt) throws Exception;
 }
