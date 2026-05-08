@@ -130,27 +130,15 @@ fun LoginScreen(
             // 顶部导航栏
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center // 👈 直接让文本居中
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(LightBg)
-                        .clickable { navController.popBackStack() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = DarkText)
-                }
                 Text(
                     text = "Convenience Store",
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     color = DarkText
                 )
-                Spacer(modifier = Modifier.width(40.dp))
             }
 
             Spacer(modifier = Modifier.height(48.dp))

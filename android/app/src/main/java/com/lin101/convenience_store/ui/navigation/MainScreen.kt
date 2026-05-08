@@ -148,27 +148,27 @@ fun CustomBottomNavigationBar(navController: NavHostController, currentRoute: St
 
     Box(modifier = Modifier.fillMaxWidth().background(Color.Transparent)) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .shadow(8.dp)
-                .background(Color.White)
-                .height(65.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth(),
+            // 移除 Arrangement.SpaceAround，改用权重控制
             verticalAlignment = Alignment.CenterVertically
         ) {
             items.forEach { item ->
                 if (item == BottomNavItem.Cart) {
-                    Spacer(modifier = Modifier.width(60.dp))
+                    // 中间给购物车留出的位置也占 1/5 权重
+                    Spacer(modifier = Modifier.weight(1f))
                 } else {
-                    val isSelected = currentRoute == item.route
-                    BottomNavIcon(item, isSelected) {
-                        navController.navigate(item.route) {
-                            popUpTo(BottomNavItem.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
+                    BottomNavIcon(
+                        item = item,
+                        isSelected = currentRoute == item.route,
+                        onClick = {
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        modifier = Modifier.weight(1f) // 👈 核心：每个图标强行平分 1/5 宽度
+                    )
                 }
             }
         }
@@ -208,12 +208,17 @@ fun CustomBottomNavigationBar(navController: NavHostController, currentRoute: St
 }
 
 @Composable
-private fun BottomNavIcon(item: BottomNavItem, isSelected: Boolean, onClick: () -> Unit) {
+private fun BottomNavIcon(
+    item: BottomNavItem,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier // 👈 1. 新增 modifier 参数
+) {
     val color = if (isSelected) BrandGreen else TextGray
     Column(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(8.dp),
+        modifier = modifier // 👈 2. 使用传入的 modifier (包含 weight)
+            .clickable(onClick = onClick) // 👈 3. 点击事件在前，确保覆盖整个 weight 区域
+            .padding(vertical = 12.dp),   // 👈 4. 只留垂直边距，水平方向充满
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(

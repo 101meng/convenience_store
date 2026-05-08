@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
-
 class UserPreferences(private val context: Context) {
 
     companion object {
@@ -23,24 +22,18 @@ class UserPreferences(private val context: Context) {
         val USER_NICKNAME_KEY = stringPreferencesKey("user_nickname")
         val USER_AVATAR_KEY = stringPreferencesKey("user_avatar")
         val USER_ADDRESS_KEY = stringPreferencesKey("user_address")
-        val USER_BALANCE_KEY: Preferences.Key<Double>
-            get() = doublePreferencesKey("user_balance")
-
+        val USER_BALANCE_KEY = doublePreferencesKey("user_balance")
         val SHOPPING_MODE_KEY = stringPreferencesKey("shopping_mode")
         val CURRENT_LOCATION_NAME_KEY = stringPreferencesKey("current_location_name")
     }
 
     val tokenFlow: Flow<String?> = context.dataStore.data.map { it[TOKEN_KEY] }
-
-    // 【新增】：暴露用户的真实收货地址流
     val userAddressFlow: Flow<String> = context.dataStore.data.map { it[USER_ADDRESS_KEY] ?: "" }
+    val shoppingModeFlow: Flow<String> = context.dataStore.data.map { it[SHOPPING_MODE_KEY] ?: "pickup" }
 
-    // 如果没数据，最底层的默认值退化为“自提”和“总店”
-    val shoppingModeFlow: Flow<String> = context.dataStore.data.map {
-        it[SHOPPING_MODE_KEY] ?: "pickup"
-    }
+    // 【修改点】：默认值改为动态提示，不再写死店名
     val currentLocationNameFlow: Flow<String> = context.dataStore.data.map {
-        it[CURRENT_LOCATION_NAME_KEY] ?: "Market Street Flagship"
+        it[CURRENT_LOCATION_NAME_KEY] ?: "Select Location"
     }
 
     suspend fun saveAuthInfo(token: String, user: User) {
@@ -50,16 +43,15 @@ class UserPreferences(private val context: Context) {
             prefs[USER_PHONE_KEY] = user.phone
             prefs[USER_NICKNAME_KEY] = user.nickname
             prefs[USER_AVATAR_KEY] = user.avatarUrl ?: ""
+            prefs[USER_BALANCE_KEY] = user.balance ?: 0.0
 
             val safeAddress = user.address ?: ""
             prefs[USER_ADDRESS_KEY] = safeAddress
-            prefs[USER_BALANCE_KEY] = user.balance ?: 0.0
+
             if (safeAddress.isEmpty()) {
-                // 如果新用户没有地址，强制默认让他去最近的门店自提！
                 prefs[SHOPPING_MODE_KEY] = "pickup"
-                prefs[CURRENT_LOCATION_NAME_KEY] = "Market Street Flagship"
+                prefs[CURRENT_LOCATION_NAME_KEY] = "Main Store"
             } else {
-                // 如果是老用户且有地址，默认给他送到家！
                 prefs[SHOPPING_MODE_KEY] = "shipping"
                 prefs[CURRENT_LOCATION_NAME_KEY] = safeAddress
             }

@@ -1,7 +1,7 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : a
+ Source Server         : mysql8.0
  Source Server Type    : MySQL
  Source Server Version : 80028
  Source Host           : localhost:3306
@@ -11,7 +11,7 @@
  Target Server Version : 80028
  File Encoding         : 65001
 
- Date: 04/05/2026 16:20:35
+ Date: 08/05/2026 15:12:18
 */
 
 SET NAMES utf8mb4;
@@ -29,7 +29,7 @@ CREATE TABLE `banners`  (
   `is_active` tinyint(1) NULL DEFAULT 1 COMMENT '是否展示：1展示，0下架',
   `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of banners
@@ -66,7 +66,7 @@ CREATE TABLE `categories`  (
   `category_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `icon_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   PRIMARY KEY (`category_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of categories
@@ -76,6 +76,9 @@ INSERT INTO `categories` VALUES (2, 'Snacks', 'icon_snacks.png');
 INSERT INTO `categories` VALUES (3, 'Drinks', 'icon_drinks.png');
 INSERT INTO `categories` VALUES (4, 'Bakery', 'icon_bakery.png');
 INSERT INTO `categories` VALUES (5, 'Desserts', 'icon_desserts.png');
+INSERT INTO `categories` VALUES (6, 'Dairy & Chilled', 'icon_dairy.png');
+INSERT INTO `categories` VALUES (7, 'Instant Food', 'icon_instant.png');
+INSERT INTO `categories` VALUES (8, 'Personal Care', 'icon_care.png');
 
 -- ----------------------------
 -- Table structure for order_items
@@ -157,7 +160,7 @@ CREATE TABLE `products`  (
   PRIMARY KEY (`product_id`) USING BTREE,
   INDEX `category_id`(`category_id`) USING BTREE,
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of products
@@ -179,6 +182,36 @@ INSERT INTO `products` VALUES (14, 4, 'Artisan Sourdough Loaf', 'Naturally ferme
 INSERT INTO `products` VALUES (15, 4, 'Blueberry Muffin', 'Moist muffin loaded with fresh blueberries and topped with a sugar crumble.', 3.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-3.png', '1 Piece', 420, 5, 16, '3 Days', 'Sweet', 'Berry', 'Treat');
 INSERT INTO `products` VALUES (16, 5, 'Strawberry Cheesecake', 'Classic New York style cheesecake topped with fresh strawberry glaze.', 6.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-1.png', '1 Slice', 480, 8, 30, '4 Days', 'Decadent', 'Sweet', 'Indulgence');
 INSERT INTO `products` VALUES (17, 5, 'Matcha Tiramisu', 'A Japanese twist on the Italian classic, featuring matcha-infused mascarpone cream.', 7.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-2.png', '1 Slice', 460, 7, 28, '2 Days', 'Fusion', 'Creamy', 'Matcha');
+INSERT INTO `products` VALUES (18, 1, 'Classic Tonkatsu Bento', 'Crispy deep-fried pork cutlet served with shredded cabbage and steamed rice.', 14.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-5.png', '1 Bento', 780, 25, 35, '1 Day', 'Japanese', 'Fried', 'Meat');
+INSERT INTO `products` VALUES (19, 1, 'Spicy Tuna Poke Bowl', 'Fresh raw tuna chunks in a spicy mayo sauce over rice with edamame and seaweed.', 16.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-6.png', '1 Bowl', 450, 30, 15, '1 Day', 'Seafood', 'Spicy', 'Fresh');
+INSERT INTO `products` VALUES (20, 1, 'Mushroom Truffle Risotto', 'Creamy Italian rice dish cooked with wild mushrooms and finished with truffle oil.', 15.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-7.png', '1 Bowl', 520, 12, 22, '2 Days', 'Vegetarian', 'Gourmet', 'Comfort Food');
+INSERT INTO `products` VALUES (21, 2, 'Spicy Nacho Chips', 'Crunchy corn tortilla chips generously coated in spicy nacho cheese seasoning.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-5.png', '150g', 500, 5, 25, '6 Months', 'Spicy', 'Crunchy', 'Party');
+INSERT INTO `products` VALUES (22, 2, 'Fruity Gummy Bears', 'Chewy, fruit-flavored gummy candies in various fun shapes and colors.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-6.png', '120g', 350, 2, 0, '12 Months', 'Sweet', 'Chewy', 'Candy');
+INSERT INTO `products` VALUES (23, 2, 'Dark Chocolate Almonds', 'Premium whole almonds coated in rich, slightly bitter 70% dark chocolate.', 6.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-7.png', '100g', 480, 10, 35, '8 Months', 'Chocolate', 'Nutty', 'Antioxidants');
+INSERT INTO `products` VALUES (24, 2, 'Spicy Wasabi Peas', 'Crunchy roasted green peas coated with an intense, nose-clearing wasabi kick.', 3.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-8.png', '130g', 420, 12, 14, '10 Months', 'Spicy', 'Crunchy', 'Snack');
+INSERT INTO `products` VALUES (25, 3, 'Zero Sugar Cola', 'Classic cola taste without the calories or sugar. Best served chilled.', 2.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-5.png', '330ml', 0, 0, 0, '12 Months', 'Zero Sugar', 'Soda', 'Refreshing');
+INSERT INTO `products` VALUES (26, 3, 'Electrolyte Sports Drink', 'Citrus-flavored hydration beverage packed with essential electrolytes for recovery.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-6.png', '500ml', 80, 0, 0, '12 Months', 'Hydration', 'Energy', 'Sports');
+INSERT INTO `products` VALUES (27, 3, 'Premium Oolong Tea', 'Authentic roasted oolong tea with a floral aroma and smooth finish.', 3.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-7.png', '450ml', 0, 0, 0, '9 Months', 'Tea', 'Sugar Free', 'Traditional');
+INSERT INTO `products` VALUES (28, 3, 'Oat Milk Latte', 'Espresso perfectly balanced with creamy, plant-based oat milk.', 4.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-8.png', '350ml', 120, 2, 4, '3 Days', 'Coffee', 'Dairy-Free', 'Morning');
+INSERT INTO `products` VALUES (29, 4, 'Garlic Bread Baguette', 'Crispy mini baguette generously spread with garlic and herb butter.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-4.png', '1 Piece', 380, 8, 18, '2 Days', 'Savory', 'Garlic', 'Warm');
+INSERT INTO `products` VALUES (30, 4, 'Cinnamon Roll', 'Soft, fluffy dough swirled with cinnamon sugar and topped with cream cheese icing.', 4.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-5.png', '1 Piece', 450, 5, 20, '3 Days', 'Sweet', 'Cinnamon', 'Breakfast');
+INSERT INTO `products` VALUES (31, 4, 'Cheese Danish', 'Flaky pastry filled with sweet, creamy cheese and glazed with light syrup.', 3.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-6.png', '1 Piece', 360, 6, 22, '2 Days', 'Pastry', 'Cheese', 'Flaky');
+INSERT INTO `products` VALUES (32, 5, 'Vanilla Bean Macarons', 'Delicate French almond meringue cookies filled with rich vanilla buttercream.', 6.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-3.png', '3 Pieces', 210, 4, 10, '5 Days', 'French', 'Sweet', 'Delicate');
+INSERT INTO `products` VALUES (33, 5, 'Chocolate Lava Cake', 'Rich chocolate cake with a molten, gooey chocolate center. Warm before eating.', 5.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-4.png', '1 Cake', 550, 6, 30, '4 Days', 'Chocolate', 'Warm', 'Indulgent');
+INSERT INTO `products` VALUES (34, 6, 'Blueberry Greek Yogurt', 'Thick, high-protein Greek yogurt blended with real blueberry preserve.', 2.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-1.png', '150g', 120, 12, 0, '14 Days', 'Probiotic', 'Healthy', 'Breakfast');
+INSERT INTO `products` VALUES (35, 6, 'Fresh Whole Milk', 'Farm-fresh pasteurized whole milk, rich in calcium and vitamin D.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-2.png', '1L', 600, 32, 32, '7 Days', 'Dairy', 'Calcium', 'Fresh');
+INSERT INTO `products` VALUES (36, 6, 'Cheddar Cheese Slices', 'Aged cheddar cheese, perfectly sliced for sandwiches and burgers.', 4.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-3.png', '200g', 800, 48, 66, '30 Days', 'Cheese', 'Savory', 'Sandwich');
+INSERT INTO `products` VALUES (37, 6, 'Probiotic Dairy Drink', 'Sweet and tangy fermented milk drink containing active probiotics for gut health.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-4.png', '5 Pack', 250, 6, 0, '21 Days', 'Probiotic', 'Digestion', 'Daily');
+INSERT INTO `products` VALUES (38, 6, 'Unsweetened Soy Milk', 'Plant-based milk alternative made from non-GMO soybeans with zero added sugar.', 3.20, NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-5.png', '1L', 330, 28, 18, '10 Days', 'Vegan', 'Dairy-Free', 'Healthy');
+INSERT INTO `products` VALUES (39, 7, 'Spicy Beef Cup Noodles', 'Classic instant noodles with rich, spicy beef broth and dehydrated veggies.', 2.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-1.png', '1 Cup', 380, 8, 16, '6 Months', 'Instant', 'Spicy', 'Late Night');
+INSERT INTO `products` VALUES (40, 7, 'Seafood Tonkotsu Ramen', 'Premium instant ramen with creamy pork broth, seafood flavors, and thick noodles.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-2.png', '1 Bowl', 460, 12, 18, '6 Months', 'Ramen', 'Seafood', 'Filling');
+INSERT INTO `products` VALUES (41, 7, 'Microwave Mac & Cheese', 'Easy-to-prepare macaroni pasta in a velvety, comforting cheese sauce.', 3.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-3.png', '1 Bowl', 410, 14, 15, '8 Months', 'Comfort Food', 'Cheese', 'Microwave');
+INSERT INTO `products` VALUES (42, 7, 'Creamy Tomato Soup', 'Rich and hearty tomato soup, perfectly seasoned and ready to heat.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-4.png', '1 Cup', 210, 4, 8, '12 Months', 'Soup', 'Warm', 'Vegetarian');
+INSERT INTO `products` VALUES (43, 7, 'Self-Heating Hot Pot', 'Spicy Sichuan-style hot pot that cooks itself. Includes meat, veggies, and noodles.', 9.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-5.png', '1 Pot', 850, 25, 45, '9 Months', 'Spicy', 'Hot Pot', 'Self-Heating');
+INSERT INTO `products` VALUES (44, 8, 'Travel Toothbrush Set', 'Compact folding toothbrush with a mini tube of mint toothpaste.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-1.png', '1 Set', NULL, NULL, NULL, 'N/A', 'Travel', 'Hygiene', 'Essentials');
+INSERT INTO `products` VALUES (45, 8, 'Hand Sanitizer Gel', 'Alcohol-based hand sanitizer that kills 99.9% of germs. Contains aloe vera.', 2.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-2.png', '50ml', NULL, NULL, NULL, '2 Years', 'Hygiene', 'Clean', 'Protection');
+INSERT INTO `products` VALUES (46, 8, 'Pocket Tissues (3-Pack)', 'Soft, durable, and absorbent facial tissues in convenient travel-sized packs.', 1.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-3.png', '3 Packs', NULL, NULL, NULL, 'N/A', 'Paper', 'Soft', 'Daily');
+INSERT INTO `products` VALUES (47, 8, 'Moisturizing Lip Balm', 'Hydrating lip care with shea butter and SPF 15 to prevent chapped lips.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-4.png', '1 Stick', NULL, NULL, NULL, '3 Years', 'Skincare', 'Moisture', 'Winter');
 
 -- ----------------------------
 -- Table structure for stores
@@ -191,7 +224,7 @@ CREATE TABLE `stores`  (
   `latitude` decimal(10, 8) NULL DEFAULT NULL,
   `longitude` decimal(11, 8) NULL DEFAULT NULL,
   PRIMARY KEY (`store_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of stores
@@ -213,7 +246,7 @@ CREATE TABLE `users`  (
   `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '配送地址',
   PRIMARY KEY (`user_id`) USING BTREE,
   UNIQUE INDEX `phone`(`phone`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of users

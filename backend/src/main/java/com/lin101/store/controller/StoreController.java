@@ -4,8 +4,10 @@ import com.lin101.store.common.Result;
 import com.lin101.store.common.ResultCode;
 import com.lin101.store.entity.Category;
 import com.lin101.store.entity.Product;
+import com.lin101.store.entity.Store;
 import com.lin101.store.service.CategoryService;
 import com.lin101.store.service.ProductService;
+import com.lin101.store.service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +27,8 @@ public class StoreController {
 
     @Autowired
     private ProductService productService;
+    @Autowired
+    private StoreService storeService;
 
     @GetMapping("/categories")
     public Result<List<Category>> getCategories() {
@@ -51,5 +55,11 @@ public class StoreController {
         } catch (Exception e) {
             return Result.failed(ResultCode.FAILED);
         }
+    }
+
+    @GetMapping("/stores")
+    public Result<List<Store>> getStores() {
+        // 直接调用 MyBatis-Plus 提供的 list 方法查询全部门店
+        return Result.success(ResultCode.SUCCESS, storeService.list());
     }
 }

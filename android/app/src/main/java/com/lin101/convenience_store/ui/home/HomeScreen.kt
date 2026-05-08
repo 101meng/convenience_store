@@ -3,18 +3,7 @@ package com.lin101.convenience_store.ui.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -22,36 +11,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DirectionsBike
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,77 +32,60 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.roundToInt
+import com.lin101.convenience_store.data.model.Store
 
-import com.lin101.convenience_store.ui.theme.AiAccentPurple
-import com.lin101.convenience_store.ui.theme.AiDeepPurple
-import com.lin101.convenience_store.ui.theme.AiInnerFrame
-import com.lin101.convenience_store.ui.theme.AiLightPurple
-import com.lin101.convenience_store.ui.theme.BrandGreen
-import com.lin101.convenience_store.ui.theme.BrandOrange
-import com.lin101.convenience_store.ui.theme.BrandRed
-import com.lin101.convenience_store.ui.theme.DarkGreen
-import com.lin101.convenience_store.ui.theme.DarkText
-import com.lin101.convenience_store.ui.theme.LightGray
+// 导入颜色配置
+import com.lin101.convenience_store.ui.theme.*
 
-/**
- * 首页主界面
- * 包含：顶部搜索栏、轮播Banner、限时秒杀、AI推荐、每日新品列表
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController,
     viewModel: HomeViewModel = viewModel()
 ) {
-    // 页面数据状态
+    // 监听来自 ViewModel 的所有状态
     val banners by viewModel.banners.collectAsState()
     val flashSales by viewModel.flashSales.collectAsState()
     val newArrivals by viewModel.newArrivals.collectAsState()
-
-    // 购物模式与位置信息
     val shoppingMode by viewModel.shoppingMode.collectAsState()
     val currentLocationName by viewModel.currentLocationName.collectAsState()
-    val userAddress by viewModel.userAddress.collectAsState()
+    val userAddress by viewModel.userAddress.collectAsState() // 获取用户真实地址
+    val cartItemCount by viewModel.cartItemCount.collectAsState()
+    val stores by viewModel.stores.collectAsState() // 获取数据库门店列表
 
-    // 控制底部弹窗显示/隐藏
+    // 进入页面时刷新购物车数量
+    LaunchedEffect(Unit) {
+        viewModel.fetchCartCount()
+    }
+
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    Scaffold(containerColor = Color.White) { paddingValues ->
+    // 【优化 1】：移除嵌套的 Scaffold，改用 Box 作为根布局，彻底解决白色横条占位问题
+    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier = Modifier.fillMaxSize()
         ) {
-            // 顶部搜索与定位栏
             item {
                 TopSearchBar(
                     shoppingMode = shoppingMode,
                     locationName = currentLocationName,
+                    cartCount = cartItemCount,
+                    onCartClick = { navController.navigate("cart") },
                     onLocationClick = { showBottomSheet = true }
                 )
             }
-            item { Spacer(modifier = Modifier.height(16.dp)) }
 
-            // 轮播广告区
+            item { Spacer(modifier = Modifier.height(16.dp)) }
             item { PromoBanner(banners, navController) }
             item { Spacer(modifier = Modifier.height(24.dp)) }
-
-            // 秒杀 + AI推荐卡片
             item { PromoCardsSection(flashSales, navController) }
             item { Spacer(modifier = Modifier.height(24.dp)) }
-
-            // 每日新品模块标题
             item { SectionTitle("Daily New Arrivals") }
             item { Spacer(modifier = Modifier.height(8.dp)) }
 
-            // 新品列表（空状态/商品列表）
             if (newArrivals.isEmpty()) {
                 item {
-                    Text(
-                        text = "Loading fresh arrivals...",
-                        color = Color.Gray,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    Text("Loading fresh arrivals...", color = Color.Gray, modifier = Modifier.padding(16.dp))
                 }
             } else {
                 items(newArrivals) { product ->
@@ -148,12 +93,11 @@ fun HomeScreen(
                 }
             }
 
-            // 底部留白（避免被底部导航遮挡）
-            item { Spacer(modifier = Modifier.height(80.dp)) }
+            // 【优化 2】：删掉了原来这里的 item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 
-    // 配送/自提选择底部弹窗
+    // 底部地址/模式选择弹窗
     if (showBottomSheet) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
@@ -163,10 +107,12 @@ fun HomeScreen(
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
             dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }
         ) {
+            // 【优化 3】：将 userAddress 传给选择器，内部会自动判断显示真实地址还是“添加地址”按钮
             DeliveryModeSelector(
+                stores = stores,
+                userAddress = userAddress,
                 currentMode = shoppingMode,
                 currentLocation = currentLocationName,
-                userAddress = userAddress,
                 onModeSelected = { mode, location ->
                     viewModel.updateDeliveryMode(mode, location)
                     showBottomSheet = false
@@ -181,131 +127,126 @@ fun HomeScreen(
 }
 
 /**
- * 顶部搜索栏：显示配送/自提模式 + 位置 + 搜索/购物车图标
+ * 顶部搜索栏：现在支持动态购物车角标和点击跳转
  */
 @Composable
 private fun TopSearchBar(
     shoppingMode: String,
     locationName: String,
+    cartCount: Int, // 【新增参数】
+    onCartClick: () -> Unit, // 【新增参数】
     onLocationClick: () -> Unit
 ) {
     val prefixText = if (shoppingMode == "pickup") "PICKUP AT" else "DELIVER TO"
     val iconVector = if (shoppingMode == "pickup") Icons.Default.Storefront else Icons.Default.LocationOn
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 左侧：配送/自提 + 位置（可点击切换）
         Column(
-            modifier = Modifier
-                .weight(1F)
-                .clip(RoundedCornerShape(8.dp))
-                .clickable { onLocationClick() }
-                .padding(vertical = 4.dp)
+            modifier = Modifier.weight(1F).clip(RoundedCornerShape(8.dp)).clickable { onLocationClick() }.padding(vertical = 4.dp)
         ) {
-            Text(text = prefixText, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+            Text(prefixText, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(iconVector, contentDescription = null, tint = BrandGreen, modifier = Modifier.size(16.dp))
+                Icon(iconVector, null, tint = BrandGreen, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = locationName,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = DarkText,
-                    maxLines = 1
-                )
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Drop Down", tint = Color.Gray)
+                Text(locationName, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = DarkText, maxLines = 1)
+                Icon(Icons.Default.KeyboardArrowDown, "Drop Down", tint = Color.Gray)
             }
         }
 
-        // 右侧：搜索 + 购物车（带角标）
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { }) {
-                Icon(Icons.Default.Search, contentDescription = "Search", tint = DarkText)
+            IconButton(onClick = { /* TODO: 搜索页 */ }) {
+                Icon(Icons.Default.Search, null, tint = DarkText)
             }
-            Box(contentAlignment = Alignment.TopEnd) {
-                IconButton(onClick = { }) {
-                    Icon(Icons.Default.ShoppingBag, contentDescription = "Cart", tint = DarkText)
+
+            // 【核心修改】：点击图标区域触发跳转
+            Box(
+                contentAlignment = Alignment.TopEnd,
+                modifier = Modifier.clickable { onCartClick() }
+            ) {
+                IconButton(onClick = onCartClick) {
+                    Icon(Icons.Default.ShoppingBag, "Cart", tint = DarkText)
                 }
-                Box(
-                    modifier = Modifier
-                        .padding(top = 4.dp, end = 4.dp)
-                        .size(16.dp)
-                        .clip(CircleShape)
-                        .background(BrandOrange),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("2", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+
+                // 【核心修改】：只有当购物车有商品时才显示红点角标
+                if (cartCount > 0) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 4.dp, end = 4.dp)
+                            .size(18.dp) // 稍微变大一点以容纳两位数
+                            .clip(CircleShape)
+                            .background(BrandOrange),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (cartCount > 99) "99+" else cartCount.toString(),
+                            color = Color.White,
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-/**
- * 配送/自提选择面板（底部弹窗内容）
- */
+
 @Composable
 fun DeliveryModeSelector(
+    stores: List<Store>,
+    userAddress: String,
     currentMode: String,
     currentLocation: String,
-    userAddress: String,
     onModeSelected: (String, String) -> Unit,
     onNavigateToProfile: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 24.dp, end = 24.dp, bottom = 48.dp)
-    ) {
-        Text("Choose your service", fontSize = 20.sp, fontWeight = FontWeight.Black, color = DarkText)
+    Column(modifier = Modifier.fillMaxWidth().padding(24.dp).padding(bottom = 24.dp)) {
+        Text("Choose Delivery Mode", fontSize = 20.sp, fontWeight = FontWeight.Black)
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 配送到家选项
-        ModeOptionCard(
-            title = "Delivery to Address",
-            subtitle = if (userAddress.isEmpty()) "Tap to add your delivery address" else userAddress,
-            icon = Icons.Default.DirectionsBike,
-            isSelected = currentMode == "shipping",
-            isWarning = userAddress.isEmpty(),
-            onClick = {
-                if (userAddress.isEmpty()) {
-                    onNavigateToProfile()
-                } else {
-                    onModeSelected("shipping", userAddress)
-                }
-            }
-        )
+        if (userAddress.isNotEmpty()) {
+            ModeOptionCard(
+                title = "Delivery to Home",
+                subtitle = userAddress,
+                icon = Icons.Default.DirectionsCar,
+                isSelected = currentMode == "shipping",
+                isWarning = false,
+                onClick = { onModeSelected("shipping", userAddress) }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-        Spacer(modifier = Modifier.height(16.dp))
         Text("Or pick up nearby:", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 自提点1
-        ModeOptionCard(
-            title = "Market Street Flagship",
-            subtitle = "123 Market St, 0.5 miles away",
-            icon = Icons.Default.Storefront,
-            isSelected = currentMode == "pickup" && currentLocation.contains("Market"),
-            isWarning = false,
-            onClick = { onModeSelected("pickup", "Market Street Flagship") }
-        )
+        // 🏪 动态渲染门店列表（保持不变）
+        stores.forEach { store ->
+            ModeOptionCard(
+                title = store.storeName,
+                subtitle = store.address,
+                icon = Icons.Default.Storefront,
+                isSelected = currentMode == "pickup" && currentLocation == store.storeName,
+                isWarning = false,
+                onClick = { onModeSelected("pickup", store.storeName) }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // 自提点2
-        ModeOptionCard(
-            title = "GreenLoop Market",
-            subtitle = "Downtown, 5th Ave, 1.2 miles away",
-            icon = Icons.Default.Storefront,
-            isSelected = currentMode == "pickup" && currentLocation.contains("GreenLoop"),
-            isWarning = false,
-            onClick = { onModeSelected("pickup", "GreenLoop Market") }
-        )
+        if (userAddress.isEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            ModeOptionCard(
+                title = "Add a new address",
+                subtitle = "Go to profile settings",
+                icon = Icons.Default.LocationOn,
+                isSelected = false,
+                isWarning = true,
+                onClick = onNavigateToProfile
+            )
+        }
     }
 }
 

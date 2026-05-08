@@ -11,6 +11,7 @@ import com.lin101.convenience_store.data.model.HomeData
 import com.lin101.convenience_store.data.model.LoginRequest
 import com.lin101.convenience_store.data.model.OrderModels
 import com.lin101.convenience_store.data.model.Product
+import com.lin101.convenience_store.data.model.Store
 import com.lin101.convenience_store.data.model.UpdateProfileRequest
 import com.lin101.convenience_store.data.model.UpdateProfileResponse
 import retrofit2.http.Body
@@ -79,5 +80,6 @@ interface StoreApiService {
     // AI 营养师分析接口
     @POST("api/ai/dietitian")
     suspend fun analyzeNutrition(@Body request: com.lin101.convenience_store.data.model.AiModels.AiDietitianReq): BaseResponse<com.lin101.convenience_store.data.model.AiModels.AiDietitianResp>
-
+    @GET("api/stores")
+    suspend fun getStores(): BaseResponse<List<Store>>
 }
