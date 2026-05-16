@@ -8,10 +8,11 @@ import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
+/** 订单主表 Mapper；附订单明细与商品信息的联表查询。 */
 @Mapper
 public interface OrderMapper extends BaseMapper<Order> {
 
-    // 【新增】根据订单ID，联表查出商品的名字和图片
+    /** 某订单下各行的展示名、图、数量、下单时单价。 */
     @Select("SELECT oi.product_id, oi.quantity, oi.price_at_time, p.name, p.image_url " +
             "FROM order_items oi LEFT JOIN products p ON oi.product_id = p.product_id " +
             "WHERE oi.order_id = #{orderId}")

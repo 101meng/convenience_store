@@ -11,7 +11,7 @@
  Target Server Version : 80028
  File Encoding         : 65001
 
- Date: 08/05/2026 15:12:18
+ Date: 14/05/2026 16:00:33
 */
 
 SET NAMES utf8mb4;
@@ -23,10 +23,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `banners`;
 CREATE TABLE `banners`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
-  `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '图片的网络链接',
+  `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '图片的网络链�?,
   `link_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '点击跳转的App路由，如 product_detail/1',
   `sort_order` int(0) NULL DEFAULT 0 COMMENT '排序权重，数字越大越靠前',
-  `is_active` tinyint(1) NULL DEFAULT 1 COMMENT '是否展示：1展示，0下架',
+  `is_active` tinyint(1) NULL DEFAULT 1 COMMENT '是否展示�?展示�?下架',
   `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
@@ -66,7 +66,7 @@ CREATE TABLE `categories`  (
   `category_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `icon_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   PRIMARY KEY (`category_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of categories
@@ -110,7 +110,7 @@ INSERT INTO `order_items` VALUES (3, 2, 9, 1, 4.50);
 DROP TABLE IF EXISTS `orders`;
 CREATE TABLE `orders`  (
   `order_id` int(0) NOT NULL AUTO_INCREMENT,
-  `order_sn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '订单号',
+  `order_sn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '订单�?,
   `user_id` int(0) NULL DEFAULT NULL,
   `store_id` int(0) NULL DEFAULT NULL,
   `total_amount` decimal(10, 2) NOT NULL,
@@ -144,9 +144,8 @@ CREATE TABLE `products`  (
   `category_id` int(0) NULL DEFAULT NULL,
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
-  `price` decimal(10, 2) NOT NULL,
   `original_price` decimal(10, 2) NULL DEFAULT NULL COMMENT '原价',
-  `is_flash_sale` tinyint(1) NULL DEFAULT 0 COMMENT '是否为秒杀商品 1是 0否',
+  `is_flash_sale` tinyint(1) NULL DEFAULT 0 COMMENT '是否为秒杀商品 1�?0�?,
   `flash_sale_end_time` datetime(0) NULL DEFAULT NULL COMMENT '秒杀结束时间',
   `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `unit` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '如：1L, 250g',
@@ -154,64 +153,122 @@ CREATE TABLE `products`  (
   `protein` int(0) NULL DEFAULT NULL,
   `total_fat` int(0) NULL DEFAULT NULL,
   `shelf_life` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `tag1` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标签1',
-  `tag2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标签2',
-  `tag3` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标签3',
+  `tag1` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标�?',
+  `tag2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标�?',
+  `tag3` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标�?',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '更新时间',
   PRIMARY KEY (`product_id`) USING BTREE,
   INDEX `category_id`(`category_id`) USING BTREE,
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 48 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of products
 -- ----------------------------
-INSERT INTO `products` VALUES (1, 1, 'Grilled Chicken Quinoa Bowl', 'High-protein grilled chicken breast with organic quinoa, roasted sweet potatoes, and a light lemon tahini dressing.', 12.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-1.png', '1 Bowl', 420, 35, 12, '2 Days', 'High Protein', 'Healthy', 'Low Carb');
-INSERT INTO `products` VALUES (2, 1, 'Vegan Buddha Bowl', 'A vibrant mix of avocado, chickpeas, shredded carrots, and mixed greens. Perfect for a clean eating day.', 11.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-2.png', '1 Bowl', 380, 14, 18, '2 Days', 'Vegan', 'Organic', 'Fiber');
-INSERT INTO `products` VALUES (3, 1, 'Premium Salmon Sushi Box', 'Freshly made salmon nigiri and avocado rolls. Served with low-sodium soy sauce and organic wasabi.', 15.99, 19.99, 1, '2026-12-31 23:59:59', 'http://10.0.2.2:8080/images/1-3.png', '1 Box', 520, 28, 15, '1 Day', 'Seafood', 'Fresh', 'Omega-3');
-INSERT INTO `products` VALUES (4, 1, 'Teriyaki Beef & Rice', 'Tender beef slices glazed in homemade teriyaki sauce over fluffy jasmine rice and steamed broccoli.', 13.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-4.png', '1 Bento', 650, 32, 22, '2 Days', 'Hot Food', 'Filling', 'Asian');
-INSERT INTO `products` VALUES (5, 2, 'Sea Salt Potato Chips', 'Thick-cut, kettle-cooked potato chips seasoned with natural sea salt. Dangerously addictive.', 3.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-1.png', '150g', 540, 6, 32, '6 Months', 'Crunchy', 'Salty', 'Guilty Pleasure');
-INSERT INTO `products` VALUES (6, 2, 'Black Pepper Beef Jerky', 'Hickory smoked beef jerky with a serious kick of black pepper. The ultimate late-night coding snack.', 7.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-2.png', '100g', 280, 45, 8, '8 Months', 'High Protein', 'Spicy', 'Energy');
-INSERT INTO `products` VALUES (7, 2, 'Roasted Mixed Nuts', 'A premium blend of almonds, walnuts, and cashews lightly roasted without extra oil.', 6.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-3.png', '200g', 620, 20, 52, '12 Months', 'Keto', 'Vegan', 'Healthy Fats');
-INSERT INTO `products` VALUES (8, 2, 'Double Chocolate Protein Bar', 'Packed with 20g of whey protein. Tastes like a brownie but fuels your muscles.', 2.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-4.png', '60g', 220, 20, 8, '9 Months', 'Fitness', 'Muscle', 'Low Sugar');
-INSERT INTO `products` VALUES (9, 3, 'Artisanal Cold Brew', 'Steeped for 18 hours for a remarkably smooth, low-acid coffee experience. Zero calories.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-1.png', '400ml', 5, 0, 0, '5 Days', 'Caffeine', 'Smooth', 'Sugar Free');
-INSERT INTO `products` VALUES (10, 3, 'Iced Matcha Latte', 'Ceremonial grade matcha blended with creamy oat milk. A gentle energy boost.', 5.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-2.png', '500ml', 180, 4, 6, '2 Days', 'Dairy-Free', 'Antioxidants', 'Zen');
-INSERT INTO `products` VALUES (11, 3, 'Sparkling Peach Water', 'Refreshing carbonated water infused with real peach essence. Zero sugar, zero guilt.', 2.50, 3.50, 1, '2026-12-31 23:59:59', 'http://10.0.2.2:8080/images/3-3.png', '330ml', 0, 0, 0, '12 Months', 'Zero Sugar', 'Fizzy', 'Refreshing');
-INSERT INTO `products` VALUES (12, 3, 'Cold Pressed Green Juice', '100% organic kale, spinach, cucumber, and green apple. A liquid salad.', 6.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-4.png', '350ml', 110, 2, 0, '3 Days', 'Detox', 'Organic', 'Vitamins');
-INSERT INTO `products` VALUES (13, 4, 'Classic Butter Croissant', 'Flaky, buttery, and baked fresh daily. The perfect companion for your morning coffee.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-1.png', '1 Piece', 320, 6, 18, '2 Days', 'Baked Daily', 'Flaky', 'Breakfast');
-INSERT INTO `products` VALUES (14, 4, 'Artisan Sourdough Loaf', 'Naturally fermented sourdough with a crusty exterior and soft, chewy interior.', 6.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-2.png', '1 Loaf', 850, 24, 8, '5 Days', 'Artisanal', 'Fermented', 'Carbs');
-INSERT INTO `products` VALUES (15, 4, 'Blueberry Muffin', 'Moist muffin loaded with fresh blueberries and topped with a sugar crumble.', 3.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-3.png', '1 Piece', 420, 5, 16, '3 Days', 'Sweet', 'Berry', 'Treat');
-INSERT INTO `products` VALUES (16, 5, 'Strawberry Cheesecake', 'Classic New York style cheesecake topped with fresh strawberry glaze.', 6.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-1.png', '1 Slice', 480, 8, 30, '4 Days', 'Decadent', 'Sweet', 'Indulgence');
-INSERT INTO `products` VALUES (17, 5, 'Matcha Tiramisu', 'A Japanese twist on the Italian classic, featuring matcha-infused mascarpone cream.', 7.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-2.png', '1 Slice', 460, 7, 28, '2 Days', 'Fusion', 'Creamy', 'Matcha');
-INSERT INTO `products` VALUES (18, 1, 'Classic Tonkatsu Bento', 'Crispy deep-fried pork cutlet served with shredded cabbage and steamed rice.', 14.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-5.png', '1 Bento', 780, 25, 35, '1 Day', 'Japanese', 'Fried', 'Meat');
-INSERT INTO `products` VALUES (19, 1, 'Spicy Tuna Poke Bowl', 'Fresh raw tuna chunks in a spicy mayo sauce over rice with edamame and seaweed.', 16.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-6.png', '1 Bowl', 450, 30, 15, '1 Day', 'Seafood', 'Spicy', 'Fresh');
-INSERT INTO `products` VALUES (20, 1, 'Mushroom Truffle Risotto', 'Creamy Italian rice dish cooked with wild mushrooms and finished with truffle oil.', 15.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-7.png', '1 Bowl', 520, 12, 22, '2 Days', 'Vegetarian', 'Gourmet', 'Comfort Food');
-INSERT INTO `products` VALUES (21, 2, 'Spicy Nacho Chips', 'Crunchy corn tortilla chips generously coated in spicy nacho cheese seasoning.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-5.png', '150g', 500, 5, 25, '6 Months', 'Spicy', 'Crunchy', 'Party');
-INSERT INTO `products` VALUES (22, 2, 'Fruity Gummy Bears', 'Chewy, fruit-flavored gummy candies in various fun shapes and colors.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-6.png', '120g', 350, 2, 0, '12 Months', 'Sweet', 'Chewy', 'Candy');
-INSERT INTO `products` VALUES (23, 2, 'Dark Chocolate Almonds', 'Premium whole almonds coated in rich, slightly bitter 70% dark chocolate.', 6.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-7.png', '100g', 480, 10, 35, '8 Months', 'Chocolate', 'Nutty', 'Antioxidants');
-INSERT INTO `products` VALUES (24, 2, 'Spicy Wasabi Peas', 'Crunchy roasted green peas coated with an intense, nose-clearing wasabi kick.', 3.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-8.png', '130g', 420, 12, 14, '10 Months', 'Spicy', 'Crunchy', 'Snack');
-INSERT INTO `products` VALUES (25, 3, 'Zero Sugar Cola', 'Classic cola taste without the calories or sugar. Best served chilled.', 2.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-5.png', '330ml', 0, 0, 0, '12 Months', 'Zero Sugar', 'Soda', 'Refreshing');
-INSERT INTO `products` VALUES (26, 3, 'Electrolyte Sports Drink', 'Citrus-flavored hydration beverage packed with essential electrolytes for recovery.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-6.png', '500ml', 80, 0, 0, '12 Months', 'Hydration', 'Energy', 'Sports');
-INSERT INTO `products` VALUES (27, 3, 'Premium Oolong Tea', 'Authentic roasted oolong tea with a floral aroma and smooth finish.', 3.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-7.png', '450ml', 0, 0, 0, '9 Months', 'Tea', 'Sugar Free', 'Traditional');
-INSERT INTO `products` VALUES (28, 3, 'Oat Milk Latte', 'Espresso perfectly balanced with creamy, plant-based oat milk.', 4.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-8.png', '350ml', 120, 2, 4, '3 Days', 'Coffee', 'Dairy-Free', 'Morning');
-INSERT INTO `products` VALUES (29, 4, 'Garlic Bread Baguette', 'Crispy mini baguette generously spread with garlic and herb butter.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-4.png', '1 Piece', 380, 8, 18, '2 Days', 'Savory', 'Garlic', 'Warm');
-INSERT INTO `products` VALUES (30, 4, 'Cinnamon Roll', 'Soft, fluffy dough swirled with cinnamon sugar and topped with cream cheese icing.', 4.00, NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-5.png', '1 Piece', 450, 5, 20, '3 Days', 'Sweet', 'Cinnamon', 'Breakfast');
-INSERT INTO `products` VALUES (31, 4, 'Cheese Danish', 'Flaky pastry filled with sweet, creamy cheese and glazed with light syrup.', 3.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-6.png', '1 Piece', 360, 6, 22, '2 Days', 'Pastry', 'Cheese', 'Flaky');
-INSERT INTO `products` VALUES (32, 5, 'Vanilla Bean Macarons', 'Delicate French almond meringue cookies filled with rich vanilla buttercream.', 6.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-3.png', '3 Pieces', 210, 4, 10, '5 Days', 'French', 'Sweet', 'Delicate');
-INSERT INTO `products` VALUES (33, 5, 'Chocolate Lava Cake', 'Rich chocolate cake with a molten, gooey chocolate center. Warm before eating.', 5.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-4.png', '1 Cake', 550, 6, 30, '4 Days', 'Chocolate', 'Warm', 'Indulgent');
-INSERT INTO `products` VALUES (34, 6, 'Blueberry Greek Yogurt', 'Thick, high-protein Greek yogurt blended with real blueberry preserve.', 2.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-1.png', '150g', 120, 12, 0, '14 Days', 'Probiotic', 'Healthy', 'Breakfast');
-INSERT INTO `products` VALUES (35, 6, 'Fresh Whole Milk', 'Farm-fresh pasteurized whole milk, rich in calcium and vitamin D.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-2.png', '1L', 600, 32, 32, '7 Days', 'Dairy', 'Calcium', 'Fresh');
-INSERT INTO `products` VALUES (36, 6, 'Cheddar Cheese Slices', 'Aged cheddar cheese, perfectly sliced for sandwiches and burgers.', 4.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-3.png', '200g', 800, 48, 66, '30 Days', 'Cheese', 'Savory', 'Sandwich');
-INSERT INTO `products` VALUES (37, 6, 'Probiotic Dairy Drink', 'Sweet and tangy fermented milk drink containing active probiotics for gut health.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-4.png', '5 Pack', 250, 6, 0, '21 Days', 'Probiotic', 'Digestion', 'Daily');
-INSERT INTO `products` VALUES (38, 6, 'Unsweetened Soy Milk', 'Plant-based milk alternative made from non-GMO soybeans with zero added sugar.', 3.20, NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-5.png', '1L', 330, 28, 18, '10 Days', 'Vegan', 'Dairy-Free', 'Healthy');
-INSERT INTO `products` VALUES (39, 7, 'Spicy Beef Cup Noodles', 'Classic instant noodles with rich, spicy beef broth and dehydrated veggies.', 2.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-1.png', '1 Cup', 380, 8, 16, '6 Months', 'Instant', 'Spicy', 'Late Night');
-INSERT INTO `products` VALUES (40, 7, 'Seafood Tonkotsu Ramen', 'Premium instant ramen with creamy pork broth, seafood flavors, and thick noodles.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-2.png', '1 Bowl', 460, 12, 18, '6 Months', 'Ramen', 'Seafood', 'Filling');
-INSERT INTO `products` VALUES (41, 7, 'Microwave Mac & Cheese', 'Easy-to-prepare macaroni pasta in a velvety, comforting cheese sauce.', 3.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-3.png', '1 Bowl', 410, 14, 15, '8 Months', 'Comfort Food', 'Cheese', 'Microwave');
-INSERT INTO `products` VALUES (42, 7, 'Creamy Tomato Soup', 'Rich and hearty tomato soup, perfectly seasoned and ready to heat.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-4.png', '1 Cup', 210, 4, 8, '12 Months', 'Soup', 'Warm', 'Vegetarian');
-INSERT INTO `products` VALUES (43, 7, 'Self-Heating Hot Pot', 'Spicy Sichuan-style hot pot that cooks itself. Includes meat, veggies, and noodles.', 9.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-5.png', '1 Pot', 850, 25, 45, '9 Months', 'Spicy', 'Hot Pot', 'Self-Heating');
-INSERT INTO `products` VALUES (44, 8, 'Travel Toothbrush Set', 'Compact folding toothbrush with a mini tube of mint toothpaste.', 4.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-1.png', '1 Set', NULL, NULL, NULL, 'N/A', 'Travel', 'Hygiene', 'Essentials');
-INSERT INTO `products` VALUES (45, 8, 'Hand Sanitizer Gel', 'Alcohol-based hand sanitizer that kills 99.9% of germs. Contains aloe vera.', 2.99, NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-2.png', '50ml', NULL, NULL, NULL, '2 Years', 'Hygiene', 'Clean', 'Protection');
-INSERT INTO `products` VALUES (46, 8, 'Pocket Tissues (3-Pack)', 'Soft, durable, and absorbent facial tissues in convenient travel-sized packs.', 1.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-3.png', '3 Packs', NULL, NULL, NULL, 'N/A', 'Paper', 'Soft', 'Daily');
-INSERT INTO `products` VALUES (47, 8, 'Moisturizing Lip Balm', 'Hydrating lip care with shea butter and SPF 15 to prevent chapped lips.', 3.50, NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-4.png', '1 Stick', NULL, NULL, NULL, '3 Years', 'Skincare', 'Moisture', 'Winter');
+INSERT INTO `products` VALUES (1, 1, 'Grilled Chicken Quinoa Bowl', 'High-protein grilled chicken breast with organic quinoa, roasted sweet potatoes, and a light lemon tahini dressing.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-1.png', '1 Bowl', 420, 35, 12, '2 Days', 'High Protein', 'Healthy', 'Low Carb', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (2, 1, 'Vegan Buddha Bowl', 'A vibrant mix of avocado, chickpeas, shredded carrots, and mixed greens. Perfect for a clean eating day.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-2.png', '1 Bowl', 380, 14, 18, '2 Days', 'Vegan', 'Organic', 'Fiber', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (3, 1, 'Premium Salmon Sushi Box', 'Freshly made salmon nigiri and avocado rolls. Served with low-sodium soy sauce and organic wasabi.', 19.99, 1, '2026-12-31 23:59:59', 'http://10.0.2.2:8080/images/1-3.png', '1 Box', 520, 28, 15, '1 Day', 'Seafood', 'Fresh', 'Omega-3', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (4, 1, 'Teriyaki Beef & Rice', 'Tender beef slices glazed in homemade teriyaki sauce over fluffy jasmine rice and steamed broccoli.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-4.png', '1 Bento', 650, 32, 22, '2 Days', 'Hot Food', 'Filling', 'Asian', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (5, 2, 'Sea Salt Potato Chips', 'Thick-cut, kettle-cooked potato chips seasoned with natural sea salt. Dangerously addictive.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-1.png', '150g', 540, 6, 32, '6 Months', 'Crunchy', 'Salty', 'Guilty Pleasure', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (6, 2, 'Black Pepper Beef Jerky', 'Hickory smoked beef jerky with a serious kick of black pepper. The ultimate late-night coding snack.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-2.png', '100g', 280, 45, 8, '8 Months', 'High Protein', 'Spicy', 'Energy', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (7, 2, 'Roasted Mixed Nuts', 'A premium blend of almonds, walnuts, and cashews lightly roasted without extra oil.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-3.png', '200g', 620, 20, 52, '12 Months', 'Keto', 'Vegan', 'Healthy Fats', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (8, 2, 'Double Chocolate Protein Bar', 'Packed with 20g of whey protein. Tastes like a brownie but fuels your muscles.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-4.png', '60g', 220, 20, 8, '9 Months', 'Fitness', 'Muscle', 'Low Sugar', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (9, 3, 'Artisanal Cold Brew', 'Steeped for 18 hours for a remarkably smooth, low-acid coffee experience. Zero calories.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-1.png', '400ml', 5, 0, 0, '5 Days', 'Caffeine', 'Smooth', 'Sugar Free', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (10, 3, 'Iced Matcha Latte', 'Ceremonial grade matcha blended with creamy oat milk. A gentle energy boost.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-2.png', '500ml', 180, 4, 6, '2 Days', 'Dairy-Free', 'Antioxidants', 'Zen', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (11, 3, 'Sparkling Peach Water', 'Refreshing carbonated water infused with real peach essence. Zero sugar, zero guilt.', 3.50, 1, '2026-12-31 23:59:59', 'http://10.0.2.2:8080/images/3-3.png', '330ml', 0, 0, 0, '12 Months', 'Zero Sugar', 'Fizzy', 'Refreshing', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (12, 3, 'Cold Pressed Green Juice', '100% organic kale, spinach, cucumber, and green apple. A liquid salad.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-4.png', '350ml', 110, 2, 0, '3 Days', 'Detox', 'Organic', 'Vitamins', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (13, 4, 'Classic Butter Croissant', 'Flaky, buttery, and baked fresh daily. The perfect companion for your morning coffee.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-1.png', '1 Piece', 320, 6, 18, '2 Days', 'Baked Daily', 'Flaky', 'Breakfast', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (14, 4, 'Artisan Sourdough Loaf', 'Naturally fermented sourdough with a crusty exterior and soft, chewy interior.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-2.png', '1 Loaf', 850, 24, 8, '5 Days', 'Artisanal', 'Fermented', 'Carbs', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (15, 4, 'Blueberry Muffin', 'Moist muffin loaded with fresh blueberries and topped with a sugar crumble.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-3.png', '1 Piece', 420, 5, 16, '3 Days', 'Sweet', 'Berry', 'Treat', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (16, 5, 'Strawberry Cheesecake', 'Classic New York style cheesecake topped with fresh strawberry glaze.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-1.png', '1 Slice', 480, 8, 30, '4 Days', 'Decadent', 'Sweet', 'Indulgence', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (17, 5, 'Matcha Tiramisu', 'A Japanese twist on the Italian classic, featuring matcha-infused mascarpone cream.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-2.png', '1 Slice', 460, 7, 28, '2 Days', 'Fusion', 'Creamy', 'Matcha', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (18, 1, 'Classic Tonkatsu Bento', 'Crispy deep-fried pork cutlet served with shredded cabbage and steamed rice.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-5.png', '1 Bento', 780, 25, 35, '1 Day', 'Japanese', 'Fried', 'Meat', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (19, 1, 'Spicy Tuna Poke Bowl', 'Fresh raw tuna chunks in a spicy mayo sauce over rice with edamame and seaweed.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-6.png', '1 Bowl', 450, 30, 15, '1 Day', 'Seafood', 'Spicy', 'Fresh', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (20, 1, 'Mushroom Truffle Risotto', 'Creamy Italian rice dish cooked with wild mushrooms and finished with truffle oil.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/1-7.png', '1 Bowl', 520, 12, 22, '2 Days', 'Vegetarian', 'Gourmet', 'Comfort Food', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (21, 2, 'Spicy Nacho Chips', 'Crunchy corn tortilla chips generously coated in spicy nacho cheese seasoning.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-5.png', '150g', 500, 5, 25, '6 Months', 'Spicy', 'Crunchy', 'Party', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (22, 2, 'Fruity Gummy Bears', 'Chewy, fruit-flavored gummy candies in various fun shapes and colors.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-6.png', '120g', 350, 2, 0, '12 Months', 'Sweet', 'Chewy', 'Candy', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (23, 2, 'Dark Chocolate Almonds', 'Premium whole almonds coated in rich, slightly bitter 70% dark chocolate.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-7.png', '100g', 480, 10, 35, '8 Months', 'Chocolate', 'Nutty', 'Antioxidants', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (24, 2, 'Spicy Wasabi Peas', 'Crunchy roasted green peas coated with an intense, nose-clearing wasabi kick.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/2-8.png', '130g', 420, 12, 14, '10 Months', 'Spicy', 'Crunchy', 'Snack', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (25, 3, 'Zero Sugar Cola', 'Classic cola taste without the calories or sugar. Best served chilled.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-5.png', '330ml', 0, 0, 0, '12 Months', 'Zero Sugar', 'Soda', 'Refreshing', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (26, 3, 'Electrolyte Sports Drink', 'Citrus-flavored hydration beverage packed with essential electrolytes for recovery.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-6.png', '500ml', 80, 0, 0, '12 Months', 'Hydration', 'Energy', 'Sports', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (27, 3, 'Premium Oolong Tea', 'Authentic roasted oolong tea with a floral aroma and smooth finish.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-7.png', '450ml', 0, 0, 0, '9 Months', 'Tea', 'Sugar Free', 'Traditional', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (28, 3, 'Oat Milk Latte', 'Espresso perfectly balanced with creamy, plant-based oat milk.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/3-8.png', '350ml', 120, 2, 4, '3 Days', 'Coffee', 'Dairy-Free', 'Morning', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (29, 4, 'Garlic Bread Baguette', 'Crispy mini baguette generously spread with garlic and herb butter.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-4.png', '1 Piece', 380, 8, 18, '2 Days', 'Savory', 'Garlic', 'Warm', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (30, 4, 'Cinnamon Roll', 'Soft, fluffy dough swirled with cinnamon sugar and topped with cream cheese icing.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-5.png', '1 Piece', 450, 5, 20, '3 Days', 'Sweet', 'Cinnamon', 'Breakfast', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (31, 4, 'Cheese Danish', 'Flaky pastry filled with sweet, creamy cheese and glazed with light syrup.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/4-6.png', '1 Piece', 360, 6, 22, '2 Days', 'Pastry', 'Cheese', 'Flaky', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (32, 5, 'Vanilla Bean Macarons', 'Delicate French almond meringue cookies filled with rich vanilla buttercream.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-3.png', '3 Pieces', 210, 4, 10, '5 Days', 'French', 'Sweet', 'Delicate', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (33, 5, 'Chocolate Lava Cake', 'Rich chocolate cake with a molten, gooey chocolate center. Warm before eating.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/5-4.png', '1 Cake', 550, 6, 30, '4 Days', 'Chocolate', 'Warm', 'Indulgent', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (34, 6, 'Blueberry Greek Yogurt', 'Thick, high-protein Greek yogurt blended with real blueberry preserve.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-1.png', '150g', 120, 12, 0, '14 Days', 'Probiotic', 'Healthy', 'Breakfast', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (35, 6, 'Fresh Whole Milk', 'Farm-fresh pasteurized whole milk, rich in calcium and vitamin D.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-2.png', '1L', 600, 32, 32, '7 Days', 'Dairy', 'Calcium', 'Fresh', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (36, 6, 'Cheddar Cheese Slices', 'Aged cheddar cheese, perfectly sliced for sandwiches and burgers.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-3.png', '200g', 800, 48, 66, '30 Days', 'Cheese', 'Savory', 'Sandwich', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (37, 6, 'Probiotic Dairy Drink', 'Sweet and tangy fermented milk drink containing active probiotics for gut health.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-4.png', '5 Pack', 250, 6, 0, '21 Days', 'Probiotic', 'Digestion', 'Daily', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (38, 6, 'Unsweetened Soy Milk', 'Plant-based milk alternative made from non-GMO soybeans with zero added sugar.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/6-5.png', '1L', 330, 28, 18, '10 Days', 'Vegan', 'Dairy-Free', 'Healthy', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (39, 7, 'Spicy Beef Cup Noodles', 'Classic instant noodles with rich, spicy beef broth and dehydrated veggies.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-1.png', '1 Cup', 380, 8, 16, '6 Months', 'Instant', 'Spicy', 'Late Night', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (40, 7, 'Seafood Tonkotsu Ramen', 'Premium instant ramen with creamy pork broth, seafood flavors, and thick noodles.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-2.png', '1 Bowl', 460, 12, 18, '6 Months', 'Ramen', 'Seafood', 'Filling', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (41, 7, 'Microwave Mac & Cheese', 'Easy-to-prepare macaroni pasta in a velvety, comforting cheese sauce.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-3.png', '1 Bowl', 410, 14, 15, '8 Months', 'Comfort Food', 'Cheese', 'Microwave', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (42, 7, 'Creamy Tomato Soup', 'Rich and hearty tomato soup, perfectly seasoned and ready to heat.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-4.png', '1 Cup', 210, 4, 8, '12 Months', 'Soup', 'Warm', 'Vegetarian', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (43, 7, 'Self-Heating Hot Pot', 'Spicy Sichuan-style hot pot that cooks itself. Includes meat, veggies, and noodles.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/7-5.png', '1 Pot', 850, 25, 45, '9 Months', 'Spicy', 'Hot Pot', 'Self-Heating', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (44, 8, 'Travel Toothbrush Set', 'Compact folding toothbrush with a mini tube of mint toothpaste.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-1.png', '1 Set', NULL, NULL, NULL, 'N/A', 'Travel', 'Hygiene', 'Essentials', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (45, 8, 'Hand Sanitizer Gel', 'Alcohol-based hand sanitizer that kills 99.9% of germs. Contains aloe vera.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-2.png', '50ml', NULL, NULL, NULL, '2 Years', 'Hygiene', 'Clean', 'Protection', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (46, 8, 'Pocket Tissues (3-Pack)', 'Soft, durable, and absorbent facial tissues in convenient travel-sized packs.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-3.png', '3 Packs', NULL, NULL, NULL, 'N/A', 'Paper', 'Soft', 'Daily', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `products` VALUES (47, 8, 'Moisturizing Lip Balm', 'Hydrating lip care with shea butter and SPF 15 to prevent chapped lips.', NULL, 0, NULL, 'http://10.0.2.2:8080/images/8-4.png', '1 Stick', NULL, NULL, NULL, '3 Years', 'Skincare', 'Moisture', 'Winter', '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+
+-- ----------------------------
+-- Table structure for store_products
+-- ----------------------------
+DROP TABLE IF EXISTS `store_products`;
+CREATE TABLE `store_products`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT,
+  `store_id` int(0) NOT NULL COMMENT '门店ID',
+  `product_id` int(0) NOT NULL COMMENT '商品ID',
+  `store_price` decimal(10, 2) NOT NULL COMMENT '该门店特有售�?,
+  `stock` int(0) NOT NULL DEFAULT 0 COMMENT '该门店独立库�?,
+  `status` tinyint(1) NULL DEFAULT 1 COMMENT '在该门店的上架状�?,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `idx_store_product`(`store_id`, `product_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of store_products
+-- ----------------------------
+-- Store 1: Market Street Flagship - all products at base prices
+INSERT INTO `store_products` (store_id, product_id, store_price, stock, status) VALUES
+(1, 1, 4.50, 100, 1),
+(1, 2, 9.90, 50, 1),
+(1, 3, 15.90, 50, 1),
+(1, 4, 12.90, 80, 1),
+(1, 5, 5.50, 200, 1),
+(1, 6, 8.90, 150, 1),
+(1, 7, 6.90, 100, 1),
+(1, 8, 3.90, 120, 1),
+(1, 9, 7.90, 60, 1),
+(1, 10, 8.90, 60, 1),
+(1, 11, 3.50, 80, 1),
+(1, 12, 7.90, 50, 1);
+
+-- Store 2: GreenLoop Market - slightly higher prices
+INSERT INTO `store_products` (store_id, product_id, store_price, stock, status) VALUES
+(2, 1, 6.00, 20, 1),
+(2, 2, 11.90, 30, 1),
+(2, 3, 18.90, 25, 1),
+(2, 4, 14.90, 40, 1),
+(2, 5, 6.50, 100, 1),
+(2, 6, 9.90, 80, 1),
+(2, 13, 4.50, 50, 1),
+(2, 14, 8.90, 30, 1),
+(2, 15, 5.50, 40, 1);
+
+-- Store 3: Tech Park Express - premium prices, different selection
+INSERT INTO `store_products` (store_id, product_id, store_price, stock, status) VALUES
+(3, 1, 7.50, 15, 1),
+(3, 5, 7.90, 50, 1),
+(3, 6, 10.90, 40, 1),
+(3, 9, 9.90, 30, 1),
+(3, 10, 10.90, 25, 1),
+(3, 11, 4.50, 40, 1),
+(3, 16, 5.90, 30, 1),
+(3, 17, 12.90, 20, 1);
 
 -- ----------------------------
 -- Table structure for stores
@@ -239,14 +296,14 @@ INSERT INTO `stores` VALUES (3, 'Tech Park Express', 'Silicon Valley Blvd 88', 3
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users`  (
   `user_id` int(0) NOT NULL AUTO_INCREMENT,
-  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '手机号',
-  `nickname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '新用户',
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '手机�?,
+  `nickname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '新用�?,
   `avatar_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `balance` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '余额',
   `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '配送地址',
   PRIMARY KEY (`user_id`) USING BTREE,
   UNIQUE INDEX `phone`(`phone`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of users

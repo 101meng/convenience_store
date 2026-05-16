@@ -24,6 +24,17 @@ import retrofit2.http.Query
 
 interface StoreApiService {
 
+    // ================= 鉴权模块 =================
+    @GET("api/auth/sendCode")
+    suspend fun sendCode(@Query("phone") phone: String): ApiResponse
+
+    @POST("api/auth/login")
+    suspend fun login(@Body request: LoginRequest): BaseResponse<AuthData>
+
+    @POST("api/user/update")
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): UpdateProfileResponse
+
+    // ================= 商品与门店模块 =================
     @GET("api/categories")
     suspend fun getCategories(): BaseResponse<List<Category>>
 
@@ -31,19 +42,12 @@ interface StoreApiService {
     suspend fun getProducts(@Query("categoryId") categoryId: Int? = null): BaseResponse<List<Product>>
 
     @GET("api/products/{id}")
-    suspend fun getProductById(@Path("id") productId: Int): BaseResponse<Product>
+    suspend fun getProductById(@Path("id") id: Int): BaseResponse<Product>
 
-    @GET("api/auth/sendCode")
-    suspend fun sendCode(@Query("phone") phone: String): ApiResponse
+    @GET("api/stores")
+    suspend fun getStores(): BaseResponse<List<Store>>
 
-    // 【修改点】：使用 BaseResponse 包裹刚才新建的 AuthData
-    @POST("api/auth/login")
-    suspend fun login(@Body request: LoginRequest): BaseResponse<AuthData>
-
-    @POST("api/user/update")
-    suspend fun updateProfile(@Body request: UpdateProfileRequest): UpdateProfileResponse
-
-    // 购物车部分
+    // ================= 购物车模块 =================
     @GET("api/cart/list")
     suspend fun getCartList(@Query("userId") userId: Int): BaseResponse<List<CartItem>>
 
@@ -63,6 +67,7 @@ interface StoreApiService {
     @GET("api/order/list")
     suspend fun getOrderList(@Query("userId") userId: Int): BaseResponse<List<OrderModels.OrderVO>>
 
+    // 【无需加 Header 参数，ApiClient 拦截器会自动加】
     @GET("api/home/index")
     suspend fun getHomeData(): BaseResponse<HomeData>
 
@@ -72,14 +77,10 @@ interface StoreApiService {
     @POST("api/order/receive")
     suspend fun receiveOrder(@Query("orderId") orderId: Int): BaseResponse<Any>
 
-
     // ================= AI 智能模块 =================
     @POST("api/ai/planner")
     suspend fun getAiRecommendation(@Body request: com.lin101.convenience_store.data.model.AiModels.AiPlannerReq): BaseResponse<com.lin101.convenience_store.data.model.AiModels.AiPlannerResp>
 
-    // AI 营养师分析接口
     @POST("api/ai/dietitian")
     suspend fun analyzeNutrition(@Body request: com.lin101.convenience_store.data.model.AiModels.AiDietitianReq): BaseResponse<com.lin101.convenience_store.data.model.AiModels.AiDietitianResp>
-    @GET("api/stores")
-    suspend fun getStores(): BaseResponse<List<Store>>
 }

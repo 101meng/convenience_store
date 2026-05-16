@@ -2,7 +2,6 @@ package com.lin101.convenience_store.data.model
 
 /**
  * 对应后端的 Result<T> 统一返回格式
- * 这样 Android 就可以无缝解析所有后端的接口了
  */
 data class BaseResponse<T>(
     val code: Int,

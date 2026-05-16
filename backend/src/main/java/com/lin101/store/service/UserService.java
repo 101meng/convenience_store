@@ -4,11 +4,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.lin101.store.entity.User;
 import java.util.Map;
 
+/** 用户持久化扩展：资料更新等（实现见 {@link com.lin101.store.service.impl.UserServiceImpl}）。 */
 public interface UserService extends IService<User> {
 
-    /**
-     * 更新用户资料（业务逻辑层）
-     */
     Map<String, Object> updateProfile(String phone, String nickname, String address);
 
 }

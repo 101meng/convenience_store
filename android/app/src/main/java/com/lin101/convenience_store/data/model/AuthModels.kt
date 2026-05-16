@@ -41,5 +41,5 @@ data class UpdateProfileRequest(
 data class UpdateProfileResponse(
     val code: Int,
     val message: String,
-    val user: User? // 复用你之前写好的 User 数据类
+    val user: User?
 )

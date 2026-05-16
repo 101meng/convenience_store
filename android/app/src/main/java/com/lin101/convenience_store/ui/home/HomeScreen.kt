@@ -1,5 +1,11 @@
 package com.lin101.convenience_store.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -33,8 +39,7 @@ import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.roundToInt
 import com.lin101.convenience_store.data.model.Store
-
-// 导入颜色配置
+import com.lin101.convenience_store.ui.store.StoreViewModel
 import com.lin101.convenience_store.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,32 +48,38 @@ fun HomeScreen(
     navController: NavHostController,
     viewModel: HomeViewModel = viewModel()
 ) {
+    val storeViewModel: StoreViewModel = viewModel()
+
     // 监听来自 ViewModel 的所有状态
     val banners by viewModel.banners.collectAsState()
     val flashSales by viewModel.flashSales.collectAsState()
     val newArrivals by viewModel.newArrivals.collectAsState()
     val shoppingMode by viewModel.shoppingMode.collectAsState()
-    val currentLocationName by viewModel.currentLocationName.collectAsState()
-    val userAddress by viewModel.userAddress.collectAsState() // 获取用户真实地址
+    val currentStoreName by viewModel.currentStoreName.collectAsState()  // 从 HomeViewModel 读取
+    val userAddress by viewModel.userAddress.collectAsState()
     val cartItemCount by viewModel.cartItemCount.collectAsState()
-    val stores by viewModel.stores.collectAsState() // 获取数据库门店列表
 
-    // 进入页面时刷新购物车数量
+    // 使用 StoreViewModel 中的门店列表和当前门店信息（用于弹窗中的选中状态）
+    val stores by storeViewModel.stores.collectAsState()
+    val currentStoreId by storeViewModel.currentStoreId.collectAsState()
+
+    // 进入页面时刷新购物车数量，并确保门店列表已加载
     LaunchedEffect(Unit) {
         viewModel.fetchCartCount()
+        storeViewModel.loadStores()   // 确保门店列表加载
     }
 
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    // 【优化 1】：移除嵌套的 Scaffold，改用 Box 作为根布局，彻底解决白色横条占位问题
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
             item {
+                // 顶部搜索栏：显示当前门店名称，点击打开底部弹窗
                 TopSearchBar(
                     shoppingMode = shoppingMode,
-                    locationName = currentLocationName,
+                    locationName = currentStoreName.ifEmpty { "Select Store" },
                     cartCount = cartItemCount,
                     onCartClick = { navController.navigate("cart") },
                     onLocationClick = { showBottomSheet = true }
@@ -92,8 +103,6 @@ fun HomeScreen(
                     ProductItem(product = product, navController = navController)
                 }
             }
-
-            // 【优化 2】：删掉了原来这里的 item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 
@@ -107,14 +116,21 @@ fun HomeScreen(
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
             dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }
         ) {
-            // 【优化 3】：将 userAddress 传给选择器，内部会自动判断显示真实地址还是“添加地址”按钮
             DeliveryModeSelector(
                 stores = stores,
                 userAddress = userAddress,
                 currentMode = shoppingMode,
-                currentLocation = currentLocationName,
-                onModeSelected = { mode, location ->
-                    viewModel.updateDeliveryMode(mode, location)
+                currentStoreId = currentStoreId,
+                onModeAndStoreSelected = { mode, store ->
+                    // 1. 更新购物模式（保存到 UserPreferences 的 shoppingMode 和 currentLocationName）
+                    viewModel.updateDeliveryMode(mode, store.storeName)
+                    // 2. 更新当前门店（StoreViewModel 会同时更新内存和 DataStore）
+                    storeViewModel.selectStore(store.storeId, store.storeName)
+                    // 3. 刷新首页数据（因为后端依赖 X-Store-Id）
+                    viewModel.fetchHomeData()
+                    // 4. 刷新购物车数量（不同门店购物车可能不同）
+                    viewModel.fetchCartCount()
+                    // 关闭弹窗
                     showBottomSheet = false
                 },
                 onNavigateToProfile = {
@@ -126,63 +142,59 @@ fun HomeScreen(
     }
 }
 
-/**
- * 顶部搜索栏：现在支持动态购物车角标和点击跳转
- */
 @Composable
-private fun TopSearchBar(
+fun TopSearchBar(
     shoppingMode: String,
     locationName: String,
-    cartCount: Int, // 【新增参数】
-    onCartClick: () -> Unit, // 【新增参数】
+    cartCount: Int,
+    onCartClick: () -> Unit,
     onLocationClick: () -> Unit
 ) {
     val prefixText = if (shoppingMode == "pickup") "PICKUP AT" else "DELIVER TO"
-    val iconVector = if (shoppingMode == "pickup") Icons.Default.Storefront else Icons.Default.LocationOn
+    val iconVector = if (shoppingMode == "pickup") Icons.Default.Storefront else Icons.Default.DirectionsCar
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            modifier = Modifier.weight(1F).clip(RoundedCornerShape(8.dp)).clickable { onLocationClick() }.padding(vertical = 4.dp)
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(8.dp))
+                .clickable { onLocationClick() }
+                .padding(vertical = 4.dp)
         ) {
-            Text(prefixText, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+            Text(prefixText, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(iconVector, null, tint = BrandGreen, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(locationName, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = DarkText, maxLines = 1)
-                Icon(Icons.Default.KeyboardArrowDown, "Drop Down", tint = Color.Gray)
+                Icon(Icons.Default.KeyboardArrowDown, "Expand", tint = Color.Gray)
             }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { /* TODO: 搜索页 */ }) {
+            IconButton(onClick = { /* 搜索逻辑 */ }) {
                 Icon(Icons.Default.Search, null, tint = DarkText)
             }
-
-            // 【核心修改】：点击图标区域触发跳转
-            Box(
-                contentAlignment = Alignment.TopEnd,
-                modifier = Modifier.clickable { onCartClick() }
-            ) {
+            Box(contentAlignment = Alignment.TopEnd, modifier = Modifier.clickable { onCartClick() }) {
                 IconButton(onClick = onCartClick) {
                     Icon(Icons.Default.ShoppingBag, "Cart", tint = DarkText)
                 }
-
-                // 【核心修改】：只有当购物车有商品时才显示红点角标
                 if (cartCount > 0) {
                     Box(
                         modifier = Modifier
                             .padding(top = 4.dp, end = 4.dp)
-                            .size(18.dp) // 稍微变大一点以容纳两位数
+                            .size(18.dp)
                             .clip(CircleShape)
                             .background(BrandOrange),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = if (cartCount > 99) "99+" else cartCount.toString(),
+                            if (cartCount > 99) "99+" else cartCount.toString(),
                             color = Color.White,
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Black
@@ -194,65 +206,131 @@ private fun TopSearchBar(
     }
 }
 
-
 @Composable
 fun DeliveryModeSelector(
     stores: List<Store>,
     userAddress: String,
     currentMode: String,
-    currentLocation: String,
-    onModeSelected: (String, String) -> Unit,
+    currentStoreId: Int?,
+    onModeAndStoreSelected: (String, Store) -> Unit,
     onNavigateToProfile: () -> Unit
 ) {
+    // 默认当前模式如果为空或无效，则使用 "pickup"（到店模式）
+    var selectedMode by remember { mutableStateOf(if (currentMode == "shipping") "shipping" else "pickup") }
+    var selectedStore by remember { mutableStateOf<Store?>(null) }
+
+    val preselectedStore = if (selectedStore == null && currentStoreId != null) {
+        stores.find { it.storeId == currentStoreId }
+    } else null
+
     Column(modifier = Modifier.fillMaxWidth().padding(24.dp).padding(bottom = 24.dp)) {
-        Text("Choose Delivery Mode", fontSize = 20.sp, fontWeight = FontWeight.Black)
+        Text("Service Mode", fontSize = 20.sp, fontWeight = FontWeight.Black)
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // 模式切换器：顺序改为【到店(Pick Up)】在前，【外卖(Delivery)】在后
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(LightGray)
+                .padding(4.dp)
+        ) {
+            // 顺序：pickup 先，shipping 后
+            val modes = listOf("pickup" to "Pick Up", "shipping" to "Delivery")
+            modes.forEach { (mode, label) ->
+                val isSelected = selectedMode == mode
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (isSelected) Color.White else Color.Transparent)
+                        .clickable { selectedMode = mode },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        label,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isSelected) BrandGreen else Color.Gray
+                    )
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
-        if (userAddress.isNotEmpty()) {
-            ModeOptionCard(
-                title = "Delivery to Home",
-                subtitle = userAddress,
-                icon = Icons.Default.DirectionsCar,
-                isSelected = currentMode == "shipping",
-                isWarning = false,
-                onClick = { onModeSelected("shipping", userAddress) }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+        // 动画显示配送地址区域（仅在外卖模式下）
+        AnimatedVisibility(
+            visible = selectedMode == "shipping",
+            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 })
+        ) {
+            Column {
+                Text("Delivery Address", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                Spacer(modifier = Modifier.height(12.dp))
+                if (userAddress.isNotEmpty()) {
+                    ModeOptionCard(
+                        title = "Home",
+                        subtitle = userAddress,
+                        icon = Icons.Default.Home,
+                        isSelected = true,
+                        isWarning = false,
+                        onClick = {}
+                    )
+                } else {
+                    ModeOptionCard(
+                        title = "No Address Found",
+                        subtitle = "Set address in profile",
+                        icon = Icons.Default.LocationOff,
+                        isSelected = false,
+                        isWarning = true,
+                        onClick = onNavigateToProfile
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
 
-        Text("Or pick up nearby:", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+        // 门店选择（始终显示，不带动画）
+        Text("Select Store", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 🏪 动态渲染门店列表（保持不变）
-        stores.forEach { store ->
-            ModeOptionCard(
-                title = store.storeName,
-                subtitle = store.address,
-                icon = Icons.Default.Storefront,
-                isSelected = currentMode == "pickup" && currentLocation == store.storeName,
-                isWarning = false,
-                onClick = { onModeSelected("pickup", store.storeName) }
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            stores.forEach { store ->
+                val isStoreSelected = selectedStore?.storeId == store.storeId ||
+                        (selectedStore == null && preselectedStore?.storeId == store.storeId)
+                ModeOptionCard(
+                    title = store.storeName,
+                    subtitle = store.address,
+                    icon = Icons.Default.Storefront,
+                    isSelected = isStoreSelected,
+                    isWarning = false,
+                    onClick = { selectedStore = store }
+                )
+            }
         }
 
-        if (userAddress.isEmpty()) {
-            Spacer(modifier = Modifier.height(12.dp))
-            ModeOptionCard(
-                title = "Add a new address",
-                subtitle = "Go to profile settings",
-                icon = Icons.Default.LocationOn,
-                isSelected = false,
-                isWarning = true,
-                onClick = onNavigateToProfile
-            )
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 确认按钮
+        Button(
+            onClick = {
+                val storeToUse = selectedStore ?: preselectedStore
+                storeToUse?.let { store ->
+                    onModeAndStoreSelected(selectedMode, store)
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = BrandGreen),
+            shape = RoundedCornerShape(16.dp),
+            enabled = (selectedStore != null || preselectedStore != null)
+        ) {
+            Text("Confirm", color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
 }
 
-/**
- * 配送/自提 单个选项卡片（可选中、带警告状态）
- */
 @Composable
 fun ModeOptionCard(
     title: String,
@@ -269,14 +347,17 @@ fun ModeOptionCard(
             .background(Color.White)
             .border(
                 width = 2.dp,
-                color = if (isSelected) BrandGreen else if (isWarning) BrandOrange.copy(alpha = 0.5f) else Color.Transparent,
+                color = when {
+                    isSelected -> BrandGreen
+                    isWarning -> BrandOrange.copy(alpha = 0.5f)
+                    else -> Color.Transparent
+                },
                 shape = RoundedCornerShape(20.dp)
             )
             .clickable { onClick() }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 图标区域
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -284,32 +365,31 @@ fun ModeOptionCard(
                 .background(if (isSelected) BrandGreen.copy(alpha = 0.1f) else LightGray),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = if (isSelected) BrandGreen else if (isWarning) BrandOrange else Color.Gray)
+            Icon(icon, contentDescription = null, tint = when {
+                isSelected -> BrandGreen
+                isWarning -> BrandOrange
+                else -> Color.Gray
+            })
         }
         Spacer(modifier = Modifier.width(16.dp))
 
-        // 标题+描述
         Column(modifier = Modifier.weight(1f)) {
             Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = DarkText)
             Spacer(modifier = Modifier.height(4.dp))
             Text(subtitle, color = if (isWarning) BrandOrange else Color.Gray, fontSize = 12.sp)
         }
 
-        // 选中/警告状态图标
-        if (isSelected) {
-            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = BrandGreen)
-        } else if (isWarning) {
-            Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = BrandOrange)
+        when {
+            isSelected -> Icon(Icons.Default.CheckCircle, null, tint = BrandGreen)
+            isWarning -> Icon(Icons.Default.KeyboardArrowRight, null, tint = BrandOrange)
         }
     }
 }
 
-/**
- * 轮播Banner（无数据时显示默认占位图）
- */
+// ================= 以下为原 HomeScreen 中的辅助组件，保持不变 =================
+
 @Composable
 private fun PromoBanner(banners: List<com.lin101.convenience_store.data.model.Banner>, navController: NavHostController) {
-    // 无Banner数据时显示默认占位UI
     if (banners.isEmpty()) {
         Box(modifier = Modifier.fillMaxWidth().height(180.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(24.dp)).background(DarkGreen)) {
             Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.Center) {
@@ -326,7 +406,6 @@ private fun PromoBanner(banners: List<com.lin101.convenience_store.data.model.Ba
         return
     }
 
-    // 轮播状态与自动播放
     val pagerState = rememberPagerState(pageCount = { banners.size })
     LaunchedEffect(banners.size) {
         while (true) {
@@ -337,7 +416,6 @@ private fun PromoBanner(banners: List<com.lin101.convenience_store.data.model.Ba
         }
     }
 
-    // 轮播容器 + 指示器
     Box(modifier = Modifier.fillMaxWidth().height(180.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(24.dp))) {
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
             AsyncImage(
@@ -349,7 +427,6 @@ private fun PromoBanner(banners: List<com.lin101.convenience_store.data.model.Ba
                 contentScale = ContentScale.Crop
             )
         }
-        // 底部指示器
         Row(modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             repeat(banners.size) { iteration ->
                 Box(
@@ -363,14 +440,10 @@ private fun PromoBanner(banners: List<com.lin101.convenience_store.data.model.Ba
     }
 }
 
-/**
- * 营销卡片区域：左侧限时秒杀，右侧AI推荐
- */
 @Composable
 private fun PromoCardsSection(flashSales: List<com.lin101.convenience_store.data.model.Product>, navController: NavHostController) {
     val flashProduct = flashSales.firstOrNull()
     Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        // 左侧：限时秒杀卡片
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -383,11 +456,9 @@ private fun PromoCardsSection(flashSales: List<com.lin101.convenience_store.data
                 }
         ) {
             if (flashProduct != null) {
-                // 计算折扣
                 val original = flashProduct.originalPrice ?: flashProduct.price
                 val discountPercent = if (original > 0) ((original - flashProduct.price) / original * 100).roundToInt() else 0
 
-                // 秒杀倒计时
                 var remainingSeconds by remember(flashProduct) { mutableStateOf(calculateRemainingSeconds(flashProduct.flashSaleEndTime)) }
                 LaunchedEffect(flashProduct) {
                     while (remainingSeconds > 0) {
@@ -399,7 +470,6 @@ private fun PromoCardsSection(flashSales: List<com.lin101.convenience_store.data
                 val minutes = ((remainingSeconds % 3600) / 60).toString().padStart(2, '0')
                 val seconds = (remainingSeconds % 60).toString().padStart(2, '0')
 
-                // 秒杀标题 + 倒计时
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Bolt, contentDescription = null, tint = BrandOrange, modifier = Modifier.size(20.dp))
@@ -416,7 +486,6 @@ private fun PromoCardsSection(flashSales: List<com.lin101.convenience_store.data
                     }
                 }
 
-                // 商品图片 + 折扣标签
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -439,7 +508,6 @@ private fun PromoCardsSection(flashSales: List<com.lin101.convenience_store.data
                     }
                 }
             } else {
-                // 秒杀无数据状态
                 Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(40.dp))
                     Spacer(modifier = Modifier.height(8.dp))
@@ -448,7 +516,6 @@ private fun PromoCardsSection(flashSales: List<com.lin101.convenience_store.data
             }
         }
 
-        // 右侧：AI推荐卡片
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -492,9 +559,6 @@ private fun PromoCardsSection(flashSales: List<com.lin101.convenience_store.data
     }
 }
 
-/**
- * 倒计时数字胶囊（时分秒）
- */
 @Composable
 private fun TimePill(time: String) {
     Box(
@@ -507,9 +571,6 @@ private fun TimePill(time: String) {
     }
 }
 
-/**
- * 模块标题（左侧标题 + 右侧查看全部）
- */
 @Composable
 private fun SectionTitle(title: String) {
     Row(
@@ -522,9 +583,6 @@ private fun SectionTitle(title: String) {
     }
 }
 
-/**
- * 商品列表项（圆形图片 + 名称描述 + 价格 + 加入按钮）
- */
 @Composable
 private fun ProductItem(product: com.lin101.convenience_store.data.model.Product, navController: NavHostController) {
     Row(
@@ -534,7 +592,6 @@ private fun ProductItem(product: com.lin101.convenience_store.data.model.Product
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 商品图片
         AsyncImage(
             model = product.imageUrl,
             contentDescription = null,
@@ -546,7 +603,6 @@ private fun ProductItem(product: com.lin101.convenience_store.data.model.Product
         )
         Spacer(modifier = Modifier.width(16.dp))
 
-        // 商品信息
         Column(modifier = Modifier.weight(1f)) {
             Text(product.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = DarkText, maxLines = 1)
             Spacer(modifier = Modifier.height(2.dp))
@@ -555,7 +611,6 @@ private fun ProductItem(product: com.lin101.convenience_store.data.model.Product
             Text("$${product.price}", color = BrandGreen, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
         }
 
-        // 加入按钮
         Button(
             onClick = { navController.navigate("product_detail/${product.productId}") },
             colors = ButtonDefaults.buttonColors(containerColor = LightGray, contentColor = DarkText),
@@ -568,11 +623,6 @@ private fun ProductItem(product: com.lin101.convenience_store.data.model.Product
     }
 }
 
-/**
- * 计算秒杀活动剩余秒数
- * @param endTimeStr 结束时间字符串
- * @return 剩余秒数（异常返回0）
- */
 fun calculateRemainingSeconds(endTimeStr: String?): Long {
     if (endTimeStr.isNullOrEmpty()) return 0L
     return try {

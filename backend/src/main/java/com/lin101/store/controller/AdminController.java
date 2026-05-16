@@ -17,6 +17,10 @@ import com.lin101.store.service.OrderService;
 import com.lin101.store.service.ProductService;
 import com.lin101.store.service.UserService;
 import com.lin101.store.vo.OrderVO;
+import com.lin101.store.entity.Store;
+import com.lin101.store.entity.StoreProduct;
+import com.lin101.store.service.StoreService;
+import com.lin101.store.service.StoreProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +34,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+/**
+ * 绠＄悊绔?REST锛堣矾寰勫墠缂€ {@code /api/admin}锛夈€傝仛鍚堜华琛ㄧ洏缁熻銆丅anner/鍟嗗搧/鐢ㄦ埛/璁㈠崟/鍒嗙被鐨?CRUD锛?
+ * 浠ュ強鍚庡彴鐩磋繛 LongCat 鐨勫璇濇帴鍙ｏ紙涓?{@link com.lin101.store.service.impl.AiServiceImpl} 浣跨敤鍚屼竴妯″瀷绾胯矾锛夈€?
+ */
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
@@ -41,9 +49,7 @@ public class AdminController {
     @Autowired private OrderMapper orderMapper;
     @Autowired private CategoryService categoryService;
 
-    // ==========================================
-    // 1. Dashboard 统计与图表 (融合版，自带动态时间段)
-    // ==========================================
+    /** 鎬昏惀鏀躲€佷粖鏃ュ姣斿骞呫€佽鍗曟暟銆佺敤鎴锋暟銆佸惎鐢?Banner 鏁扮瓑鎸囨爣銆?*/
     @GetMapping("/dashboard/stats")
     public Result<Map<String, Object>> getDashboardStats() {
         try {
@@ -75,6 +81,9 @@ public class AdminController {
         } catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /**
+     * 鍥捐〃鏁版嵁锛氳繎 {@code days} 澶╂瘡鏃ュ凡瀹屾垚璁㈠崟钀ユ敹鏇茬嚎锛涗互鍙婃寜鍒嗙被缁熻鐨勫晢鍝佹暟閲忓垎甯冦€?
+     */
     @GetMapping("/dashboard/charts")
     public Result<Map<String, Object>> getDashboardCharts(@RequestParam(defaultValue = "7") Integer days) {
         try {
@@ -83,7 +92,6 @@ public class AdminController {
             List<Double> revenues = new ArrayList<>();
             LocalDate today = LocalDate.now();
 
-            // 🔥 真实的动态时间倒推（支持 7 天或 30 天）
             int offset = days - 1;
 
             List<Order> recentOrders = orderService.list(new QueryWrapper<Order>()
@@ -118,27 +126,28 @@ public class AdminController {
         } catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
-    // ==========================================
-    // 2. Banners (支持修改排序权重)
-    // ==========================================
+    /** Banner 鍒楄〃锛堝惈鏈惎鐢級銆?*/
     @GetMapping("/banners")
     public Result<List<Banner>> getAllBanners() {
         try { return Result.success(ResultCode.SUCCESS, bannerService.list()); }
         catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /** 鏂板 Banner銆?*/
     @PostMapping("/banners")
     public Result<Void> addBanner(@RequestBody Banner banner) {
         try { bannerService.save(banner); return Result.success(ResultCode.SUCCESS); }
         catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /** 鍏ㄩ噺鏇存柊 Banner 瀛楁銆?*/
     @PutMapping("/banners")
     public Result<Void> updateBanner(@RequestBody Banner banner) {
         try { bannerService.updateById(banner); return Result.success(ResultCode.SUCCESS); }
         catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /** 浠呮洿鏂颁笂涓嬬嚎锛歿@code id}銆亄@code isActive}銆?*/
     @PutMapping("/banners/status")
     public Result<Void> updateBannerStatus(@RequestBody Map<String, Integer> requestData) {
         try {
@@ -147,15 +156,14 @@ public class AdminController {
         } catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /** 鍒犻櫎 Banner銆?*/
     @DeleteMapping("/banners/{id}")
     public Result<Void> deleteBanner(@PathVariable("id") Integer id) {
         try { bannerService.removeById(id); return Result.success(ResultCode.SUCCESS); }
         catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
-    // ==========================================
-    // 3. Products
-    // ==========================================
+    /** 鍟嗗搧鍒嗛〉锛涙敮鎸佹寜鍒嗙被涓庡悕绉?鎻忚堪妯＄硦鎼滅储锛岃繑鍥?MyBatis-Plus 鍒嗛〉鍏冩暟鎹€?*/
     @GetMapping("/products")
     public Result<Map<String, Object>> getProductsByPage(@RequestParam(defaultValue = "1") Integer current, @RequestParam(defaultValue = "10") Integer size, @RequestParam(required = false) Integer categoryId, @RequestParam(required = false) String keyword) {
         try {
@@ -171,27 +179,28 @@ public class AdminController {
         } catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /** 鏂板鍟嗗搧銆?*/
     @PostMapping("/products")
     public Result<Void> addProduct(@RequestBody Product product) {
         try { productService.save(product); return Result.success(ResultCode.SUCCESS); }
         catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /** 鏇存柊鍟嗗搧銆?*/
     @PutMapping("/products")
     public Result<Void> updateProduct(@RequestBody Product product) {
         try { productService.updateById(product); return Result.success(ResultCode.SUCCESS); }
         catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /** 鍒犻櫎鍟嗗搧銆?*/
     @DeleteMapping("/products/{id}")
     public Result<Void> deleteProduct(@PathVariable("id") Integer id) {
         try { productService.removeById(id); return Result.success(ResultCode.SUCCESS); }
         catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
-    // ==========================================
-    // 4. Users (含真实充值接口)
-    // ==========================================
+    /** 鐢ㄦ埛鍒嗛〉锛涙敮鎸佹樀绉版垨鎵嬫満鍙锋ā绯婃煡銆?*/
     @GetMapping("/users")
     public Result<Map<String, Object>> getUsersByPage(
             @RequestParam(defaultValue = "1") Integer current,
@@ -211,6 +220,7 @@ public class AdminController {
         } catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /** 鏂板鐢ㄦ埛锛涙湭浼犲ご鍍忔椂鐢熸垚鍗犱綅鍥撅紝浣欓榛樿 0銆?*/
     @PostMapping("/users")
     public Result<Void> addUser(@RequestBody User user) {
         try {
@@ -224,7 +234,7 @@ public class AdminController {
         } catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
-    // 🔥 真实修改数据库余额接口
+    /** 鐢ㄦ埛浣欓鍏呭€硷細璇锋眰浣?{@code amount} 绱姞鍒板綋鍓嶄綑棰濄€?*/
     @PutMapping("/users/{id}/recharge")
     public Result<Void> rechargeUser(@PathVariable("id") Integer id, @RequestBody Map<String, Object> request) {
         try {
@@ -241,9 +251,9 @@ public class AdminController {
         }
     }
 
-    // ==========================================
-    // 5. Orders
-    // ==========================================
+    /**
+     * 璁㈠崟鍒嗛〉锛涘彲閫夌姸鎬併€佸垱寤烘椂闂村尯闂淬€傝褰曡浆鎹负 {@link OrderVO}锛堝惈鏄庣粏鑱旇〃锛夈€?
+     */
     @GetMapping("/orders")
     public Result<Map<String, Object>> getOrdersByPage(@RequestParam(defaultValue = "1") Integer current, @RequestParam(defaultValue = "10") Integer size, @RequestParam(required = false) String status, @RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) {
         try {
@@ -269,6 +279,7 @@ public class AdminController {
         } catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /** 鎺ㄨ繘璁㈠崟鐘舵€侊細{@code pending}鈫抺@code delivering}鈫抺@code completed}銆?*/
     @PutMapping("/orders/{id}/process")
     public Result<Void> processOrder(@PathVariable("id") Integer id) {
         try {
@@ -282,15 +293,14 @@ public class AdminController {
         } catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
-    // ==========================================
-    // 6. Categories
-    // ==========================================
+    /** 鏂板鍒嗙被銆?*/
     @PostMapping("/categories")
     public Result<Void> addCategory(@RequestBody Category category) {
         try { categoryService.save(category); return Result.success(ResultCode.SUCCESS); }
         catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
+    /** 鍒犻櫎鍒嗙被锛涜嫢浠嶆湁鍟嗗搧寮曠敤璇ュ垎绫诲垯澶辫触銆?*/
     @DeleteMapping("/categories/{id}")
     public Result<Void> deleteCategory(@PathVariable("id") Integer id) {
         try {
@@ -301,9 +311,7 @@ public class AdminController {
         } catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
 
-    // ==========================================
-    // 7. AI Assistant Chat
-    // ==========================================
+    /** 鍚庡彴搴楅暱鍔╂墜锛氳姹備綋 {@code prompt}锛岀洿杩?LongCat 杩斿洖鏂囨湰銆?*/
     @PostMapping("/ai/chat")
     public Result<String> adminAiChat(@RequestBody Map<String, String> request) {
         try {
@@ -324,4 +332,108 @@ public class AdminController {
             return Result.success(ResultCode.SUCCESS, rootNode.path("choices").get(0).path("message").path("content").asText());
         } catch (Exception e) { return Result.failed(ResultCode.FAILED); }
     }
+    // ============================================================
+    // Store Management
+    // ============================================================
+
+    @Autowired
+    private StoreService storeService;
+
+    @Autowired
+    private StoreProductService storeProductService;
+
+    @GetMapping("/stores")
+    public Result<List<com.lin101.store.entity.Store>> getStores() {
+        try {
+            return Result.success(ResultCode.SUCCESS, storeService.list());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failed(ResultCode.FAILED);
+        }
+    }
+
+    @PostMapping("/stores")
+    public Result<Void> addStore(@RequestBody Store store) {
+        try {
+            storeService.save(store);
+            return Result.success(ResultCode.SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failed(ResultCode.FAILED);
+        }
+    }
+
+    @PutMapping("/stores/{id}")
+    public Result<Void> updateStore(@PathVariable Integer id, @RequestBody Store store) {
+        try {
+            store.setStoreId(id);
+            storeService.updateById(store);
+            return Result.success(ResultCode.SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failed(ResultCode.FAILED);
+        }
+    }
+
+    @DeleteMapping("/stores/{id}")
+    public Result<Void> deleteStore(@PathVariable Integer id) {
+        try {
+            storeService.removeById(id);
+            return Result.success(ResultCode.SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failed(ResultCode.FAILED);
+        }
+    }
+
+    // ============================================================
+    // Store Product Management
+    // ============================================================
+
+    @GetMapping("/store-products")
+    public Result<List<Map<String, Object>>> getStoreProducts(@RequestParam Integer storeId) {
+        try {
+            return Result.success(ResultCode.SUCCESS, storeProductService.getStoreProductsWithInfo(storeId));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failed(ResultCode.FAILED);
+        }
+    }
+
+    @PostMapping("/store-products")
+    public Result<Void> addStoreProduct(@RequestBody StoreProduct sp) {
+        try {
+            storeProductService.save(sp);
+            return Result.success(ResultCode.SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failed(ResultCode.FAILED);
+        }
+    }
+
+    @PutMapping("/store-products/{id}")
+    public Result<Void> updateStoreProduct(@PathVariable Integer id, @RequestBody StoreProduct sp) {
+        try {
+            sp.setId(id);
+            storeProductService.updateById(sp);
+            return Result.success(ResultCode.SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failed(ResultCode.FAILED);
+        }
+    }
+
+    @DeleteMapping("/store-products/{id}")
+    public Result<Void> deleteStoreProduct(@PathVariable Integer id) {
+        try {
+            storeProductService.removeById(id);
+            return Result.success(ResultCode.SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.failed(ResultCode.FAILED);
+        }
+    }
+
 }
+
+

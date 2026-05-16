@@ -9,8 +9,6 @@ class AiModels {
     data class AiDietitianReq(
         val cartItems: List<CartItem>
     )
-
-    // 【新增修改】：AI 营养师响应体，将单一 advice 修改为 adviceList
     data class AiDietitianResp(
         val healthScore: Int,      // 健康评分 0-100
         val aiComment: String,     // 幽默点评

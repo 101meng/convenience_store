@@ -25,11 +25,12 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCartCheckout
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -56,29 +57,64 @@ import java.util.Locale
 
 val BrandGreen = Color(0xFF4ADE80)
 val BgOffWhite = Color(0xFFF7F8FA)
+val DarkText = Color(0xFF0F172A)  // 与首页保持一致
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(navController: NavController, viewModel: CartViewModel = viewModel()) {
     val cartItems by viewModel.cartItems.collectAsState()
     val totalPrice by viewModel.totalPrice.collectAsState()
-
+    val storeName by viewModel.storeName.collectAsState()
+    val shoppingMode by viewModel.shoppingMode.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchCartList()
     }
+
     Scaffold(
         containerColor = BgOffWhite,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("My Cart", fontWeight = FontWeight.Black, fontSize = 20.sp) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = BgOffWhite)
-            )
+            Column {
+                CenterAlignedTopAppBar(
+                    title = { Text("My Cart", fontWeight = FontWeight.Black, fontSize = 20.sp) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = BgOffWhite)
+                )
+                // 信息栏：显示购物模式和门店名称
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = if (shoppingMode == "pickup") Icons.Default.Storefront else Icons.Default.DirectionsCar,
+                        contentDescription = null,
+                        tint = BrandGreen,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (shoppingMode == "pickup") "Pickup at" else "Delivery from",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = storeName.ifEmpty { "Select Store" },
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = DarkText
+                    )
+                }
+            }
         },
         bottomBar = {
             if (cartItems.isNotEmpty()) {
@@ -88,16 +124,10 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = viewMode
                         .background(Color.White, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                         .padding(24.dp)
                 ) {
-                    // ==========================================
-                    // 【新增】：AI 营养分析雷达入口按钮
-                    // ==========================================
                     Button(
                         onClick = {
-                            // 1. 将购物车列表转换为 JSON 字符串
                             val cartJson = Gson().toJson(cartItems)
-                            // 2. 对 JSON 进行 URL 编码，防止特殊字符阻断路由
                             val encodedJson = Uri.encode(cartJson)
-                            // 3. 携带参数跳转到 AI 页面
                             navController.navigate("ai_dietitian/$encodedJson")
                         },
                         modifier = Modifier

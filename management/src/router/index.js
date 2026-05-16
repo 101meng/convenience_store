@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+﻿import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
@@ -42,7 +42,16 @@ const routes = [
         name: 'Users',
         component: () => import('../views/user/UserList.vue') 
       }
-    ]
+      { 
+        path: 'stores', 
+        name: 'Stores',
+        component: () => import('../views/store/StoreList.vue') 
+      },
+      { 
+        path: 'stores/:id/products', 
+        name: 'StoreProducts',
+        component: () => import('../views/store/StoreProducts.vue') 
+      },    ]
   }
 ]
 

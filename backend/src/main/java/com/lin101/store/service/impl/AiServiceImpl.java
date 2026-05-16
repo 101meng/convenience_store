@@ -20,21 +20,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * LongCat Chat Completions 封装。核心流程：拼 system/user messages → POST → 取 {@code choices[0].message.content}
+ * 当作<strong>一段字符串</strong>再 {@link ObjectMapper#readTree(String)}；因此模型必须返回<strong>合法 JSON 文本</strong>。
+ */
 @Service
 public class AiServiceImpl implements AiService {
 
     @Autowired
     private ProductMapper productMapper;
 
-    // 配置 LongCat API 的请求地址与密钥
+    /** LongCat API 地址；生产环境建议移到配置中心并轮换密钥。 */
     private static final String API_URL = "https://api.longcat.chat/openai/v1/chat/completions";
+    /** 与本项目演示账号绑定；切勿提交到公开仓库时可改为环境变量。 */
     private static final String API_KEY = "ak_2nY9d21Xa7PM9Wd5HD4vH48q6fY8g";
 
-    // ==========================================
-    // 业务 1：AI 场景智能搭配 (首页使用)
-    // ==========================================
+    /**
+     * 首页「AI 搭配」：用户输入场景描述，模型从全库商品中选 2～3 个 ID。
+     *
+     * @param prompt 用户自然语言需求（英文提示词要求模型英文回复）
+     * @return {@code aiMessage} 文案 + {@code recommendedProducts} 实体列表（按模型给出的 ID 查询）
+     */
     @Override
     public Map<String, Object> generateSmartCombo(String prompt) {
+        // 全表扫描构造「ID: 名称」清单，保证模型只推荐真实存在的 product_id
         List<Product> allProducts = productMapper.selectList(null);
         StringBuilder productsListStr = new StringBuilder();
         for (Product p : allProducts) {
@@ -50,16 +59,18 @@ public class AiServiceImpl implements AiService {
                 "  \"recommendedProductIds\": [(The list of product IDs you selected, e.g., [2, 9])]\n" +
                 "}";
 
+        // 默认值：接口失败或解析失败时仍返回可读文案，避免前端空白
         String finalAiMessage = "Seems like a network glitch! But here is a fresh combo for you anyway 🥗";
         List<Integer> recommendedProductIds = new ArrayList<>();
 
         try {
-            // 调用统一的网络请求辅助方法
             String aiContent = callLongCatApi(systemPrompt, prompt);
             ObjectMapper mapper = new ObjectMapper();
             JsonNode contentNode = mapper.readTree(aiContent);
 
+            // path 不会 NPE；缺失时 asText() 为 ""，会覆盖上面的默认英文文案
             finalAiMessage = contentNode.path("aiMessage").asText();
+            // 若模型返回非数组或字段缺失，此处强转可能抛异常 → 进入 catch
             ArrayNode idsNode = (ArrayNode) contentNode.path("recommendedProductIds");
             for (JsonNode idNode : idsNode) {
                 recommendedProductIds.add(idNode.asInt());
@@ -67,16 +78,19 @@ public class AiServiceImpl implements AiService {
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("AI Smart Combo generated an error, falling back to default.");
+            // 演示用固定 ID，需与数据库中真实商品一致
             recommendedProductIds.clear();
             recommendedProductIds.add(1);
             recommendedProductIds.add(11);
         }
 
+        // 解析成功但数组为空：同样 fallback，避免 IN () 或前端无商品
         if (recommendedProductIds.isEmpty()) {
             recommendedProductIds.add(1);
             recommendedProductIds.add(11);
         }
 
+        // MyBatis-Plus IN 查询；返回列表顺序与 ID 列表不一定一致
         QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("product_id", recommendedProductIds);
         List<Product> products = productMapper.selectList(queryWrapper);
@@ -88,22 +102,25 @@ public class AiServiceImpl implements AiService {
         return result;
     }
 
-    // ==========================================
-    // 业务 2：AI 营养师/卡路里雷达 (购物车使用)
-    // ==========================================
+    /**
+     * 购物车「营养师」：先按行汇总（演示倍率），再把摘要与商品清单写入 system 提示词，解析模型返回的评分与 {@code adviceList}。
+     *
+     * @param cartItems 前端传入的多行，键名约定 {@code productId}、{@code quantity}（见客户端契约）
+     * @return 含 {@code healthScore}、{@code aiComment}、{@code adviceList}、三大营养素等，供原生/Android 直接渲染
+     */
     @Override
     public Map<String, Object> analyzeNutrition(List<Map<String, Object>> cartItems) {
         int totalCal = 0, totalPro = 0, totalFat = 0;
         StringBuilder itemList = new StringBuilder();
 
-        // 遍历前端传来的购物车数据，去数据库查出真实的卡路里数据并累加
+        // 调用方若传 null 会在迭代处 NPE；此处不防御，与 Controller 契约一致
         for (Map<String, Object> item : cartItems) {
             Integer productId = (Integer) item.get("productId");
             Integer qty = (Integer) item.get("quantity");
 
             Product p = productMapper.selectById(productId);
             if (p != null) {
-                // 这里赋予擬真數據用于答辯演示
+                // 演示：未读 Product.calories 等列，固定倍率乘数量；接入真实数据时改为 p.getCalories() * qty
                 totalCal += 250 * qty;
                 totalPro += 12 * qty;
                 totalFat += 8 * qty;
@@ -112,11 +129,6 @@ public class AiServiceImpl implements AiService {
             }
         }
 
-        // ==========================================
-        // 【核心修改】：更新大模型提示词工程
-        // 要求返回建议列表 (adviceList) 替代单一建议字符串 (advice)
-        // 範例：Total Calories: " + totalCal + "kcal，確保 AI 明白單位含義
-        // ==========================================
         String systemPrompt = "You are a professional yet humorous and sharp-tongued dietitian. \n" +
                 "Analyze the user's shopping cart nutrition. Be brutally honest and funny. \n" +
                 "Nutritional Data: Total Calories: " + totalCal + "kcal, Protein: " + totalPro + "g, Fat: " + totalFat + "g.\n" +
@@ -135,18 +147,17 @@ public class AiServiceImpl implements AiService {
         List<String> adviceList = new ArrayList<>();
 
         try {
-            // 调用大模型
             String aiContent = callLongCatApi(systemPrompt, "Please analyze my cart.");
             ObjectMapper mapper = new ObjectMapper();
             JsonNode contentNode = mapper.readTree(aiContent);
 
+            // 第二参数为 JsonNode 缺失时的默认值；total* 与上面循环累计保持一致优先
             result.put("healthScore", contentNode.path("healthScore").asInt(80));
             result.put("aiComment", contentNode.path("aiComment").asText("Looking good, but could use more veggies!"));
             result.put("totalCalories", contentNode.path("totalCalories").asInt(totalCal));
             result.put("totalProtein", contentNode.path("totalProtein").asInt(totalPro));
             result.put("totalFat", contentNode.path("totalFat").asInt(totalFat));
 
-            // 解析建议列表 (adviceList)
             ArrayNode adviceNode = (ArrayNode) contentNode.path("adviceList");
             if (adviceNode != null) {
                 for (JsonNode aNode : adviceNode) {
@@ -157,7 +168,6 @@ public class AiServiceImpl implements AiService {
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("AI Dietitian generated an error, falling back to default.");
-            // 降级保底数据，防止页面白屏
             result.put("healthScore", 65);
             result.put("aiComment", "Unable to reach the dietitian, so I'll just say: drink more water!");
             result.put("totalCalories", totalCal);
@@ -168,20 +178,23 @@ public class AiServiceImpl implements AiService {
             adviceList.add("Stay hydrated!");
         }
 
-        // 防御性编程：如果 AI 一个建议都没给
+        // 模型偶发返回空数组：补一条可用建议，避免客户端列表为空
         if (adviceList.isEmpty()) {
             adviceList.add("Try adding a salad or swapping out sugary drinks.");
         }
 
-        // 组装最终结果返回给 Android 端
-        result.put("adviceList", adviceList); // 将整个列表返回
+        result.put("adviceList", adviceList);
 
         return result;
     }
 
-    // ==========================================
-    // 核心公共方法：负责向大模型发送请求并提取纯净 JSON
-    // ==========================================
+    /**
+     * 组装 OpenAI 兼容请求 POST 到 {@link #API_URL}，返回助手回复中的纯文本 content。
+     * 部分模型仍包裹 {@code ```json }，此处正则剥离以免影响 {@link ObjectMapper#readTree}。
+     *
+     * @param systemPrompt 角色与输出格式约束
+     * @param userPrompt   用户侧一句话（场景推荐或营养分析中的固定提示）
+     */
     private String callLongCatApi(String systemPrompt, String userPrompt) throws Exception {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", "LongCat-Flash-Chat");
@@ -200,6 +213,7 @@ public class AiServiceImpl implements AiService {
         messages.add(userMsg);
         requestBody.put("messages", messages);
 
+        // 每次新建 RestTemplate，短连接场景可接受；高并发应注入单例 Bean
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -210,16 +224,20 @@ public class AiServiceImpl implements AiService {
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readTree(response.getBody());
+        // OpenAI 兼容结构：choices[0].message.content
         String aiContent = rootNode.path("choices").get(0).path("message").path("content").asText();
 
         return aiContent.replaceAll("(?i)```json", "").replaceAll("```", "").trim();
-    }// ==========================================
-    // 业务 3：后台 AI 店长助理对话
-    // ==========================================
+    }
+
+    /**
+     * 后台店长助手：仅 system 角色不同，通信仍在 {@link #callLongCatApi}。
+     *
+     * @param prompt 管理员输入的经营类问题
+     */
     @Override
     public String adminChat(String prompt) throws Exception {
         String systemPrompt = "You are an AI Retail Store Manager Assistant for 'Bento Box'. Answer the user briefly and professionally. You can help analyze data, draft marketing emails, or give store advice.";
-        // 直接复用底层的通信方法，极致优雅
         return callLongCatApi(systemPrompt, prompt);
     }
 

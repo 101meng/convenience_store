@@ -2,8 +2,11 @@ package com.lin101.convenience_store.data.api
 
 import android.content.Context
 import com.lin101.convenience_store.data.local.UserPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -12,44 +15,71 @@ object ApiClient {
     // 模拟器访问本地后端的专属 IP
     private const val BASE_URL = "http://10.0.2.2:8080/"
 
-    // 预留一个变量，用于接管 Context
+    // 用于 OkHttp 拦截器的协程作用域
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    @Volatile
+    private var cachedToken: String? = null
+
+    @Volatile
+    private var cachedStoreId: Int? = null
+
     private var userPreferences: UserPreferences? = null
 
-    // 【新增】：供入口程序调用，把大环境 Context 传进来
     fun init(context: Context) {
         userPreferences = UserPreferences(context.applicationContext)
+        val prefs = userPreferences!!
+        // 后台协程：先读取初始值，再持续监听变化
+        scope.launch {
+            try {
+                cachedToken = prefs.tokenFlow.first()
+            } catch (_: Exception) {}
+            try {
+                prefs.tokenFlow.collect { cachedToken = it }
+            } catch (_: Exception) {}
+        }
+        scope.launch {
+            try {
+                cachedStoreId = prefs.currentStoreIdFlow.first()
+            } catch (_: Exception) {}
+            try {
+                prefs.currentStoreIdFlow.collect { cachedStoreId = it }
+            } catch (_: Exception) {}
+        }
     }
 
-    // 【核心改造】：打造一个带“拦截器”的网络客户端
+    fun syncUpdateStoreId(storeId: Int) {
+        cachedStoreId = storeId
+    }
+
     private val okHttpClient by lazy {
         OkHttpClient.Builder()
             .addInterceptor { chain ->
-                // 1. 拿到原始的请求
                 val originalRequest = chain.request()
-
-                // 2. 阻塞式地从 DataStore 中瞬间读取当前的 Token
-                val token = runBlocking {
-                    userPreferences?.tokenFlow?.first()
-                }
-
-                // 3. 开始改造请求头
                 val requestBuilder = originalRequest.newBuilder()
-                if (!token.isNullOrEmpty()) {
-                    // 标准的 JWT 携带格式：Bearer(空格)你的Token
-                    requestBuilder.header("Authorization", "Bearer $token")
+
+                cachedToken?.let {
+                    requestBuilder.header("Authorization", "Bearer $it")
                 }
 
-                // 4. 把加了 Token 的请求发射出去！
-                chain.proceed(requestBuilder.build())
+                cachedStoreId?.let {
+                    android.util.Log.d("ApiClient", "Adding X-Store-Id: $it")
+                    requestBuilder.header("X-Store-Id", it.toString())
+                } ?: run {
+                    android.util.Log.d("ApiClient", "cachedStoreId is null, no X-Store-Id header added")
+                }
+
+                val request = requestBuilder.build()
+                android.util.Log.d("ApiClient", "Request URL: ${request.url}, Headers: ${request.headers}")
+                chain.proceed(request)
             }
             .build()
     }
 
-    // 把改造好的 okHttpClient 喂给 Retrofit
     private val retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(okHttpClient) // 使用自定义的 Client
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

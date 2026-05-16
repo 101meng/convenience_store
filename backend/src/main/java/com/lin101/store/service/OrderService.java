@@ -8,16 +8,11 @@ import com.lin101.store.vo.OrderVO;
 import java.util.List;
 
 /**
- * 订单业务接口
+ * 订单：前台提交与历史查询；扩展方法配合 {@link com.lin101.store.vo.OrderSubmitReq}、{@link com.lin101.store.vo.OrderVO}。
  */
 public interface OrderService extends IService<Order> {
 
-    /**
-     * 核心业务：提交订单
-     * @param req 前端传来的下单参数
-     * @return 成功后生成的订单流水号 (OrderSn)
-     */
     String submitOrder(OrderSubmitReq req);
-    // 获取用户的所有历史订单
+
     List<OrderVO> getUserOrders(Integer userId);
 }

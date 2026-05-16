@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import java.math.BigDecimal;
 
+/** 表 users：登录用户与余额。 */
 @Data
 @TableName("users")
 public class User {

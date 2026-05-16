@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/** 表 banners：首页轮播。 */
 @Data
 @TableName("banners")
 public class Banner {
@@ -16,6 +17,7 @@ public class Banner {
     private String imageUrl;
     private String linkUrl;
     private Integer sortOrder;
-    private Integer isActive; // 1为展示，0为隐藏
+    /** 1 展示，0 下线 */
+    private Integer isActive;
     private LocalDateTime createdAt;
 }

@@ -12,20 +12,28 @@ import java.time.LocalDateTime;
 public class Product {
     @TableId(type = IdType.AUTO)
     private Integer productId;
+
     private Integer categoryId;
     private String name;
     private String description;
-    private BigDecimal price; // 价格推荐使用 BigDecimal 防止精度丢失
+
+    // original_price 建议保留作为商品的“划线价”或“指导价”
+    private BigDecimal originalPrice;
+
+    private Integer isFlashSale;
+    private LocalDateTime flashSaleEndTime;
     private String imageUrl;
-    private String unit;
-    private Integer calories;
-    private Integer protein;
-    private Integer totalFat;
-    private String shelfLife;
+
+    // 营销标签
     private String tag1;
     private String tag2;
     private String tag3;
-    private Double originalPrice;
-    private Integer isFlashSale;
-    private LocalDateTime flashSaleEndTime;
+
+    // AI 营养成分分析字段
+    private Integer calories;
+    private Integer protein;
+    private Integer totalFat;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

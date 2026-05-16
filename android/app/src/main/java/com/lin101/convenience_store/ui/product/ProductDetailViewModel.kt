@@ -25,6 +25,9 @@ class ProductDetailViewModel(application: Application) : AndroidViewModel(applic
 
     private val context = application
 
+    private val _storeId = MutableStateFlow<Int?>(null)
+    val storeId: StateFlow<Int?> = _storeId.asStateFlow()
+
     // 购买数量状态，默认为 1
     private val _quantity = MutableStateFlow(1)
     val quantity: StateFlow<Int> = _quantity.asStateFlow()
@@ -40,6 +43,11 @@ class ProductDetailViewModel(application: Application) : AndroidViewModel(applic
     // 加载真实的单件商品数据
     fun loadProductDetail(productId: Int) {
         viewModelScope.launch {
+            try {
+                // Load storeId from prefs
+                val prefs = context.dataStore.data.first()
+                _storeId.value = prefs[UserPreferences.CURRENT_STORE_ID_KEY]
+            } catch (_: Exception) {}
             try {
                 val response = ApiClient.storeService.getProductById(productId)
                 if (response.code == 200 && response.data != null) {

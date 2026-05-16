@@ -5,10 +5,11 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+/** 表 categories：商品分类。 */
 @Data
-@TableName("categories") // 对应数据库表名
+@TableName("categories")
 public class Category {
-    @TableId(type = IdType.AUTO) // 指定主键且为自增
+    @TableId(type = IdType.AUTO)
     private Integer categoryId;
     private String categoryName;
     private String iconUrl;

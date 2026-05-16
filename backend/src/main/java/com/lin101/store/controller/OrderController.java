@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 订单控制器
- * 处理下单、订单查询等业务
+ * 订单接口（需 JWT）。提交订单会基于服务端购物车重算金额并事务写库；列表接口按用户返回订单及明细。
  */
 @RestController
 @RequestMapping("/api/order")
@@ -22,31 +21,27 @@ public class OrderController {
     private OrderService orderService;
 
     /**
-     * 提交订单接口
-     * POST /api/order/submit
+     * 提交订单：购物车为空时返回 {@link com.lin101.store.common.ResultCode#ORDER_CART_EMPTY}。
+     *
+     * @param req 结算页提交的门店、运费、地址等
      */
     @PostMapping("/submit")
     public Result<String> submitOrder(@RequestBody OrderSubmitReq req) {
         try {
-            // 调用 Service 执行复杂的下单事务
             String orderSn = orderService.submitOrder(req);
 
-            // 纯枚举驱动：返回成功状态，并将订单流水号发给前端
             return Result.success(ResultCode.ORDER_SUBMIT_SUCCESS, orderSn);
 
         } catch (IllegalArgumentException e) {
-            // 捕获购物车为空的特例异常
             return Result.failed(ResultCode.ORDER_CART_EMPTY);
         } catch (Exception e) {
             e.printStackTrace();
-            // 纯枚举驱动：其他未知失败
             return Result.failed(ResultCode.ORDER_SUBMIT_FAILED);
         }
     }
 
     /**
-     * 获取历史订单列表
-     * GET /api/order/list?userId=1
+     * 历史订单列表（含每条订单的商品明细与展示用时间格式）。
      */
     @GetMapping("/list")
     public Result<List<OrderVO>> getOrderList(@RequestParam("userId") Integer userId) {

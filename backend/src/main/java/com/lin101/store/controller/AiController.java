@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * AI 智能调度核心控制器
- * 毕设亮点：接收用户的自然语言描述，返回场景化商品推荐组合
+ * 大模型相关接口：调用 LongCat Chat API（密钥与 URL 配置在 {@link com.lin101.store.service.impl.AiServiceImpl}）。
+ * <p>首页场景推荐与购物车营养分析均在此暴露为 REST。</p>
  */
 @RestController
 @RequestMapping("/api/ai")
@@ -20,6 +20,11 @@ public class AiController {
     @Autowired
     private AiService aiService;
 
+    /**
+     * 场景化搭配：根据用户自然语言从全量商品中选 ID，并返回文案与商品列表。
+     *
+     * @param request JSON：{@code prompt} 必填
+     */
     @PostMapping("/planner")
     public Result<Map<String, Object>> getAiRecommendation(@RequestBody Map<String, String> request) {
         try {
@@ -28,7 +33,6 @@ public class AiController {
                 return Result.failed(ResultCode.VALIDATE_FAILED);
             }
 
-            // 调用 AI 服务层，获取包含文字回复和商品列表的混合结果
             Map<String, Object> aiResult = aiService.generateSmartCombo(prompt);
 
             return Result.success(ResultCode.SUCCESS, aiResult);
@@ -37,10 +41,13 @@ public class AiController {
             return Result.failed(ResultCode.FAILED);
         }
     }
+
+    /**
+     * 购物车营养分析：请求体携带 {@code cartItems}（含 {@code productId}、{@code quantity}），返回评分与建议列表。
+     */
     @PostMapping("/dietitian")
     public Result<Map<String, Object>> analyzeDiet(@RequestBody Map<String, Object> request) {
         try {
-            // 获取购物车商品列表
             List<Map<String, Object>> cartItems = (List<Map<String, Object>>) request.get("cartItems");
             Map<String, Object> result = aiService.analyzeNutrition(cartItems);
             return Result.success(ResultCode.SUCCESS, result);

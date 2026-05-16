@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.RamenDining
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -66,6 +67,8 @@ fun CategoryScreen(
     val categories by viewModel.categories.collectAsState()
     val selectedCategoryId by viewModel.selectedCategoryId.collectAsState()
     val products by viewModel.filteredProducts.collectAsState()
+    val storeId by viewModel.storeId.collectAsState()
+    val storeName by viewModel.storeName.collectAsState()
 
     // 查找当前选中的分类名称，用于显示标题
     val currentCategoryName =
@@ -74,11 +77,32 @@ fun CategoryScreen(
     Column(modifier = Modifier
         .fillMaxSize()
         .background(Color.White)) {
+        // 当前门店提示
+        if (storeId != null && storeName.isNotBlank()) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Place,
+                    contentDescription = null,
+                    tint = BrandGreen,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Shopping at: $storeName",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+            }
+        }
+
         Text(
             text = "Categories",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp)
+            modifier = Modifier.padding(16.dp, 8.dp, 16.dp, 8.dp)
         )
 
         Row(

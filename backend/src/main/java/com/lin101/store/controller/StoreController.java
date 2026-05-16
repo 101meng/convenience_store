@@ -3,21 +3,16 @@ package com.lin101.store.controller;
 import com.lin101.store.common.Result;
 import com.lin101.store.common.ResultCode;
 import com.lin101.store.entity.Category;
-import com.lin101.store.entity.Product;
 import com.lin101.store.entity.Store;
 import com.lin101.store.service.CategoryService;
 import com.lin101.store.service.ProductService;
 import com.lin101.store.service.StoreService;
+import com.lin101.store.vo.ProductVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * 商城核心控制器
- * 处理商品分类、商品查询等商城基础业务接口请求
- * 接口基础路径：/api
- */
 @RestController
 @RequestMapping("/api")
 public class StoreController {
@@ -27,6 +22,7 @@ public class StoreController {
 
     @Autowired
     private ProductService productService;
+
     @Autowired
     private StoreService storeService;
 
@@ -40,18 +36,27 @@ public class StoreController {
     }
 
     @GetMapping("/products")
-    public Result<List<Product>> getProducts(@RequestParam(required = false) Integer categoryId) {
+    public Result<?> getProducts(
+            @RequestHeader(value = "X-Store-Id", defaultValue = "1") Integer storeId,
+            @RequestParam(required = false) Integer categoryId) {
         try {
-            return Result.success(ResultCode.SUCCESS, productService.getProductsByCategoryId(categoryId));
+            return Result.success(ResultCode.SUCCESS, productService.getStoreProducts(storeId, categoryId));
         } catch (Exception e) {
+            e.printStackTrace();
             return Result.failed(ResultCode.FAILED);
         }
     }
 
     @GetMapping("/products/{id}")
-    public Result<Product> getProductById(@PathVariable("id") Integer id) {
+    public Result<ProductVO> getProductById(
+            @PathVariable("id") Integer id,
+            @RequestHeader(value = "X-Store-Id", defaultValue = "1") Integer storeId) {
         try {
-            return Result.success(ResultCode.SUCCESS, productService.getById(id));
+            ProductVO product = productService.getStoreProductById(storeId, id);
+            if (product == null) {
+                return Result.failed(ResultCode.PRODUCT_NOT_FOUND);
+            }
+            return Result.success(ResultCode.SUCCESS, product);
         } catch (Exception e) {
             return Result.failed(ResultCode.FAILED);
         }
@@ -59,7 +64,10 @@ public class StoreController {
 
     @GetMapping("/stores")
     public Result<List<Store>> getStores() {
-        // 直接调用 MyBatis-Plus 提供的 list 方法查询全部门店
-        return Result.success(ResultCode.SUCCESS, storeService.list());
+        try {
+            return Result.success(ResultCode.SUCCESS, storeService.list());
+        } catch (Exception e) {
+            return Result.failed(ResultCode.FAILED);
+        }
     }
 }

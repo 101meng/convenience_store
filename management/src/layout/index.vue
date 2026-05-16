@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="h-screen w-full flex bg-bg-light overflow-hidden">
     <aside class="w-[260px] bg-white flex flex-col border-r border-slate-100/60 z-10">
       <div class="h-24 flex items-center px-8">
@@ -49,7 +49,7 @@
           </el-tooltip>
           
           <div @click="aiVisible = true" class="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-indigo-100 transition-colors">
-            <span class="text-xs font-bold text-primary">✨ AI Assistant</span>
+            <span class="text-xs font-bold text-primary">鉁?AI Assistant</span>
           </div>
           
           <div class="h-6 w-px bg-slate-200 mx-2"></div>
@@ -68,7 +68,7 @@
       </main>
     </div>
 
-    <el-dialog v-model="aiVisible" title="🤖 AI Store Assistant" width="500px" class="bento-dialog" destroy-on-close>
+    <el-dialog v-model="aiVisible" title="馃 AI Store Assistant" width="500px" class="bento-dialog" destroy-on-close>
       <div class="flex flex-col h-[400px]">
         <div class="flex-1 overflow-y-auto p-2 space-y-4 mb-4">
           <div v-for="(msg, i) in chatHistory" :key="i" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
@@ -103,7 +103,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { chatWithAi } from '@/api/admin' // 引入 AI 接口
+import { chatWithAi } from '@/api/admin' // 寮曞叆 AI 鎺ュ彛
 
 const userInfo = ref({})
 const menu = [
@@ -111,11 +111,12 @@ const menu = [
   { name: 'Products', path: '/products', icon: 'Goods' },
   { name: 'Categories', path: '/categories', icon: 'CopyDocument' },
   { name: 'Orders', path: '/orders', icon: 'ShoppingCart' },
+  { name: 'Stores', path: '/stores', icon: 'Shop' },
   { name: 'Banners', path: '/banners', icon: 'Picture' },
   { name: 'Users', path: '/users', icon: 'User' },
 ]
 
-// AI 对话逻辑
+// AI 瀵硅瘽閫昏緫
 const aiVisible = ref(false)
 const aiPrompt = ref('')
 const aiLoading = ref(false)

@@ -72,18 +72,12 @@ fun AiDietitianScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 1. Bento Top: Health Score Card
                 ScoreCard(result!!.healthScore)
-
-                // 2. Bento Middle: Nutrition Grid
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    // 【解決折行问题】：在卡路里卡片中強制單位同行
                     BentoMiniCard(modifier = Modifier.weight(1f), label = "CALORIES", value = "${result!!.totalCalories}", unit = "kcal", color = BrandOrange, forceOneLine = true)
                     BentoMiniCard(modifier = Modifier.weight(1f), label = "PROTEIN", value = "${result!!.totalProtein}", unit = "g", color = BrandGreen)
                     BentoMiniCard(modifier = Modifier.weight(1f), label = "FAT", value = "${result!!.totalFat}", unit = "g", color = Color.Red)
                 }
-
-                // 3. Bento Bottom: 【重新設計】AI Dietitian's Radar Check Card
                 InsightCard(result!!)
 
                 Spacer(modifier = Modifier.height(30.dp))
@@ -125,12 +119,10 @@ fun BentoMiniCard(modifier: Modifier, label: String, value: String, unit: String
         Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxHeight()) {
             Text(label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
 
-            // 【核心修改】：解決單位折行问题，確保卡路里和單位在同一行
             if (forceOneLine) {
-                // 使用單行文本並強制顯示
                 Text(
                     text = "$value $unit",
-                    fontSize = 20.sp, // 如果空間有限，略微調小字體
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Black,
                     color = DarkText,
                     maxLines = 1,
@@ -138,7 +130,6 @@ fun BentoMiniCard(modifier: Modifier, label: String, value: String, unit: String
                     textAlign = androidx.compose.ui.text.style.TextAlign.Start
                 )
             } else {
-                // 原有的多行顯示邏輯（用於 PROTEIN 和 FAT）
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(value, fontSize = 24.sp, fontWeight = FontWeight.Black, color = DarkText)
                     Text(unit, fontSize = 12.sp, modifier = Modifier.padding(bottom = 4.dp, start = 2.dp), color = Color.Gray)
@@ -148,17 +139,13 @@ fun BentoMiniCard(modifier: Modifier, label: String, value: String, unit: String
     }
 }
 
-/**
- * 【完全重新設計】：AI Dietitian's Radar Check Card
- * 這個卡片現在採用全白設計（托起內容），包含健康狀況色帶、幽默評論卡和建議列表。
- */
 @Composable
 fun InsightCard(analysis: com.lin101.convenience_store.data.model.AiModels.AiDietitianResp) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(32.dp))
-            .background(Color.White) // 重新設計：使用白色卡片托起內容
+            .background(Color.White)
             .padding(24.dp)
     ) {
         Column {
@@ -227,7 +214,6 @@ fun HealthStatusGauge(score: Int) {
                 .clip(CircleShape)
                 .background(Color(0xFFEFEFF4)) // 背景色带（灰色）
         ) {
-            // 指標塊，從 0 延伸到評分映射位置。
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -255,9 +241,6 @@ fun HumorousCommentCard(comment: String) {
     }
 }
 
-/**
- * 助手組件：單個建議列表項
- */
 @Composable
 fun AdviceItem(advice: String) {
     Row(

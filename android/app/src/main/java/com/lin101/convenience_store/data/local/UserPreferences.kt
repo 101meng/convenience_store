@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
+
 class UserPreferences(private val context: Context) {
 
     companion object {
@@ -25,15 +26,48 @@ class UserPreferences(private val context: Context) {
         val USER_BALANCE_KEY = doublePreferencesKey("user_balance")
         val SHOPPING_MODE_KEY = stringPreferencesKey("shopping_mode")
         val CURRENT_LOCATION_NAME_KEY = stringPreferencesKey("current_location_name")
+
+        val CURRENT_STORE_ID_KEY = intPreferencesKey("current_store_id")
+        // 新增：单独存储当前门店名称
+        val CURRENT_STORE_NAME_KEY = stringPreferencesKey("current_store_name")
     }
 
     val tokenFlow: Flow<String?> = context.dataStore.data.map { it[TOKEN_KEY] }
     val userAddressFlow: Flow<String> = context.dataStore.data.map { it[USER_ADDRESS_KEY] ?: "" }
     val shoppingModeFlow: Flow<String> = context.dataStore.data.map { it[SHOPPING_MODE_KEY] ?: "pickup" }
 
-    // 【修改点】：默认值改为动态提示，不再写死店名
     val currentLocationNameFlow: Flow<String> = context.dataStore.data.map {
         it[CURRENT_LOCATION_NAME_KEY] ?: "Select Location"
+    }
+
+    val currentStoreIdFlow: Flow<Int> = context.dataStore.data.map {
+        it[CURRENT_STORE_ID_KEY] ?: 1
+    }
+
+    // 新增：当前门店名称的 Flow
+    val currentStoreNameFlow: Flow<String> = context.dataStore.data.map {
+        it[CURRENT_STORE_NAME_KEY] ?: ""
+    }
+
+    suspend fun updateStoreId(storeId: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[CURRENT_STORE_ID_KEY] = storeId
+        }
+    }
+
+    // 新增：更新门店名称
+    suspend fun updateStoreName(storeName: String) {
+        context.dataStore.edit { prefs ->
+            prefs[CURRENT_STORE_NAME_KEY] = storeName
+        }
+    }
+
+    // 同时更新门店 ID 和名称
+    suspend fun updateStore(storeId: Int, storeName: String) {
+        context.dataStore.edit { prefs ->
+            prefs[CURRENT_STORE_ID_KEY] = storeId
+            prefs[CURRENT_STORE_NAME_KEY] = storeName
+        }
     }
 
     suspend fun saveAuthInfo(token: String, user: User) {
