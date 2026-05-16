@@ -9,10 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 大模型相关接口：调用 LongCat Chat API（密钥与 URL 配置在 {@link com.lin101.store.service.impl.AiServiceImpl}）。
- * <p>首页场景推荐与购物车营养分析均在此暴露为 REST。</p>
- */
 @RestController
 @RequestMapping("/api/ai")
 public class AiController {
@@ -21,19 +17,20 @@ public class AiController {
     private AiService aiService;
 
     /**
-     * 场景化搭配：根据用户自然语言从全量商品中选 ID，并返回文案与商品列表。
-     *
-     * @param request JSON：{@code prompt} 必填
+     * 场景化搭配：根据用户自然语言从当前门店商品中选 ID，并返回文案与商品列表。
+     * 门店 ID 从请求头 X-Store-Id 获取（默认 1）
      */
     @PostMapping("/planner")
-    public Result<Map<String, Object>> getAiRecommendation(@RequestBody Map<String, String> request) {
+    public Result<Map<String, Object>> getAiRecommendation(
+            @RequestBody Map<String, String> request,
+            @RequestHeader(value = "X-Store-Id", defaultValue = "1") Integer storeId) {
         try {
             String prompt = request.get("prompt");
             if (prompt == null || prompt.trim().isEmpty()) {
                 return Result.failed(ResultCode.VALIDATE_FAILED);
             }
 
-            Map<String, Object> aiResult = aiService.generateSmartCombo(prompt);
+            Map<String, Object> aiResult = aiService.generateSmartCombo(prompt, storeId);
 
             return Result.success(ResultCode.SUCCESS, aiResult);
         } catch (Exception e) {
@@ -42,9 +39,7 @@ public class AiController {
         }
     }
 
-    /**
-     * 购物车营养分析：请求体携带 {@code cartItems}（含 {@code productId}、{@code quantity}），返回评分与建议列表。
-     */
+    // 营养分析方法无需修改，因为购物车本身已带门店隔离
     @PostMapping("/dietitian")
     public Result<Map<String, Object>> analyzeDiet(@RequestBody Map<String, Object> request) {
         try {

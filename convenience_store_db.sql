@@ -1,7 +1,7 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : mysql8.0
+ Source Server         : a
  Source Server Type    : MySQL
  Source Server Version : 80028
  Source Host           : localhost:3306
@@ -11,7 +11,7 @@
  Target Server Version : 80028
  File Encoding         : 65001
 
- Date: 14/05/2026 16:00:33
+ Date: 16/05/2026 19:11:08
 */
 
 SET NAMES utf8mb4;
@@ -23,13 +23,13 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `banners`;
 CREATE TABLE `banners`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
-  `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '图片的网络链�?,
+  `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '图片的网络链接',
   `link_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '点击跳转的App路由，如 product_detail/1',
   `sort_order` int(0) NULL DEFAULT 0 COMMENT '排序权重，数字越大越靠前',
-  `is_active` tinyint(1) NULL DEFAULT 1 COMMENT '是否展示�?展示�?下架',
+  `is_active` tinyint(1) NULL DEFAULT 1 COMMENT '是否展示：1展示，0下架',
   `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of banners
@@ -44,6 +44,7 @@ DROP TABLE IF EXISTS `cart`;
 CREATE TABLE `cart`  (
   `cart_id` int(0) NOT NULL AUTO_INCREMENT,
   `user_id` int(0) NULL DEFAULT NULL,
+  `store_id` int(0) NOT NULL DEFAULT 1 COMMENT '门店ID',
   `product_id` int(0) NULL DEFAULT NULL,
   `quantity` int(0) NULL DEFAULT 1,
   PRIMARY KEY (`cart_id`) USING BTREE,
@@ -56,6 +57,7 @@ CREATE TABLE `cart`  (
 -- ----------------------------
 -- Records of cart
 -- ----------------------------
+INSERT INTO `cart` VALUES (38, 1, 2, 5, 1);
 
 -- ----------------------------
 -- Table structure for categories
@@ -66,7 +68,7 @@ CREATE TABLE `categories`  (
   `category_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `icon_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   PRIMARY KEY (`category_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of categories
@@ -95,7 +97,7 @@ CREATE TABLE `order_items`  (
   INDEX `product_id`(`product_id`) USING BTREE,
   CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of order_items
@@ -103,6 +105,12 @@ CREATE TABLE `order_items`  (
 INSERT INTO `order_items` VALUES (1, 1, 1, 1, 12.50);
 INSERT INTO `order_items` VALUES (2, 1, 9, 1, 4.50);
 INSERT INTO `order_items` VALUES (3, 2, 9, 1, 4.50);
+INSERT INTO `order_items` VALUES (19, 10, 3, 3, 15.90);
+INSERT INTO `order_items` VALUES (20, 11, 3, 4, 15.90);
+INSERT INTO `order_items` VALUES (21, 11, 2, 1, 9.90);
+INSERT INTO `order_items` VALUES (22, 11, 7, 1, 0.00);
+INSERT INTO `order_items` VALUES (23, 11, 9, 1, 0.00);
+INSERT INTO `order_items` VALUES (24, 11, 32, 1, 0.00);
 
 -- ----------------------------
 -- Table structure for orders
@@ -110,14 +118,14 @@ INSERT INTO `order_items` VALUES (3, 2, 9, 1, 4.50);
 DROP TABLE IF EXISTS `orders`;
 CREATE TABLE `orders`  (
   `order_id` int(0) NOT NULL AUTO_INCREMENT,
-  `order_sn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '订单�?,
+  `order_sn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '订单号',
   `user_id` int(0) NULL DEFAULT NULL,
   `store_id` int(0) NULL DEFAULT NULL,
   `total_amount` decimal(10, 2) NOT NULL,
   `delivery_fee` decimal(10, 2) NULL DEFAULT 0.00,
   `actual_amount` decimal(10, 2) NOT NULL,
   `order_type` enum('shipping','pickup') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '配送或自提',
-  `payment_method` enum('WeChat Pay','Alipay','Apple Pay') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `payment_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '支付方式：wechat/alipay/apple_pay',
   `status` enum('pending','delivering','completed','cancelled') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'pending',
   `delivery_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '下单时间',
@@ -127,13 +135,15 @@ CREATE TABLE `orders`  (
   INDEX `store_id`(`store_id`) USING BTREE,
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`store_id`) REFERENCES `stores` (`store_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of orders
 -- ----------------------------
 INSERT INTO `orders` VALUES (1, 'ORD-2026-A1B2C3D4', 1, NULL, 17.00, 1.50, 18.50, 'shipping', 'WeChat Pay', 'completed', 'Central Park West, NY 10025', '2026-05-01 10:30:00');
 INSERT INTO `orders` VALUES (2, 'ORD-2026-E5F6G7H8', 1, 1, 4.50, 0.00, 4.50, 'pickup', 'Apple Pay', 'completed', NULL, '2026-05-03 14:15:00');
+INSERT INTO `orders` VALUES (10, 'ORD-2026-E09D8982', 1, 1, 47.70, 0.00, 47.70, 'pickup', 'WeChat Pay', 'completed', NULL, '2026-05-16 14:38:19');
+INSERT INTO `orders` VALUES (11, 'ORD-2026-CD9EF1EF', 1, 1, 73.50, 0.00, 73.50, 'pickup', 'wechat', 'completed', NULL, '2026-05-16 17:59:27');
 
 -- ----------------------------
 -- Table structure for products
@@ -145,7 +155,7 @@ CREATE TABLE `products`  (
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
   `original_price` decimal(10, 2) NULL DEFAULT NULL COMMENT '原价',
-  `is_flash_sale` tinyint(1) NULL DEFAULT 0 COMMENT '是否为秒杀商品 1�?0�?,
+  `is_flash_sale` tinyint(1) NULL DEFAULT 0 COMMENT '是否为秒杀商品 1是 0否',
   `flash_sale_end_time` datetime(0) NULL DEFAULT NULL COMMENT '秒杀结束时间',
   `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `unit` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '如：1L, 250g',
@@ -153,15 +163,15 @@ CREATE TABLE `products`  (
   `protein` int(0) NULL DEFAULT NULL,
   `total_fat` int(0) NULL DEFAULT NULL,
   `shelf_life` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `tag1` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标�?',
-  `tag2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标�?',
-  `tag3` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标�?',
+  `tag1` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标签1',
+  `tag2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标签2',
+  `tag3` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '自定义标签3',
   `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '更新时间',
   PRIMARY KEY (`product_id`) USING BTREE,
   INDEX `category_id`(`category_id`) USING BTREE,
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 48 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of products
@@ -222,53 +232,79 @@ CREATE TABLE `store_products`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `store_id` int(0) NOT NULL COMMENT '门店ID',
   `product_id` int(0) NOT NULL COMMENT '商品ID',
-  `store_price` decimal(10, 2) NOT NULL COMMENT '该门店特有售�?,
-  `stock` int(0) NOT NULL DEFAULT 0 COMMENT '该门店独立库�?,
-  `status` tinyint(1) NULL DEFAULT 1 COMMENT '在该门店的上架状�?,
+  `store_price` decimal(10, 2) NOT NULL COMMENT '该门店特有售价',
+  `stock` int(0) NOT NULL DEFAULT 0 COMMENT '该门店独立库存',
+  `status` tinyint(1) NULL DEFAULT 1 COMMENT '在该门店的上架状态',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_store_product`(`store_id`, `product_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of store_products
 -- ----------------------------
--- Store 1: Market Street Flagship - all products at base prices
-INSERT INTO `store_products` (store_id, product_id, store_price, stock, status) VALUES
-(1, 1, 4.50, 100, 1),
-(1, 2, 9.90, 50, 1),
-(1, 3, 15.90, 50, 1),
-(1, 4, 12.90, 80, 1),
-(1, 5, 5.50, 200, 1),
-(1, 6, 8.90, 150, 1),
-(1, 7, 6.90, 100, 1),
-(1, 8, 3.90, 120, 1),
-(1, 9, 7.90, 60, 1),
-(1, 10, 8.90, 60, 1),
-(1, 11, 3.50, 80, 1),
-(1, 12, 7.90, 50, 1);
-
--- Store 2: GreenLoop Market - slightly higher prices
-INSERT INTO `store_products` (store_id, product_id, store_price, stock, status) VALUES
-(2, 1, 6.00, 20, 1),
-(2, 2, 11.90, 30, 1),
-(2, 3, 18.90, 25, 1),
-(2, 4, 14.90, 40, 1),
-(2, 5, 6.50, 100, 1),
-(2, 6, 9.90, 80, 1),
-(2, 13, 4.50, 50, 1),
-(2, 14, 8.90, 30, 1),
-(2, 15, 5.50, 40, 1);
-
--- Store 3: Tech Park Express - premium prices, different selection
-INSERT INTO `store_products` (store_id, product_id, store_price, stock, status) VALUES
-(3, 1, 7.50, 15, 1),
-(3, 5, 7.90, 50, 1),
-(3, 6, 10.90, 40, 1),
-(3, 9, 9.90, 30, 1),
-(3, 10, 10.90, 25, 1),
-(3, 11, 4.50, 40, 1),
-(3, 16, 5.90, 30, 1),
-(3, 17, 12.90, 20, 1);
+INSERT INTO `store_products` VALUES (1, 1, 1, 28.90, 100, 1);
+INSERT INTO `store_products` VALUES (2, 1, 2, 32.50, 100, 1);
+INSERT INTO `store_products` VALUES (3, 1, 3, 42.00, 100, 1);
+INSERT INTO `store_products` VALUES (4, 1, 4, 35.80, 100, 1);
+INSERT INTO `store_products` VALUES (5, 1, 18, 38.00, 100, 1);
+INSERT INTO `store_products` VALUES (6, 1, 19, 45.00, 100, 1);
+INSERT INTO `store_products` VALUES (7, 1, 20, 39.80, 100, 1);
+INSERT INTO `store_products` VALUES (8, 1, 5, 9.90, 100, 1);
+INSERT INTO `store_products` VALUES (9, 1, 6, 22.50, 100, 1);
+INSERT INTO `store_products` VALUES (10, 1, 7, 18.80, 100, 1);
+INSERT INTO `store_products` VALUES (11, 1, 8, 15.90, 100, 1);
+INSERT INTO `store_products` VALUES (12, 1, 21, 7.90, 100, 1);
+INSERT INTO `store_products` VALUES (13, 1, 22, 6.50, 100, 1);
+INSERT INTO `store_products` VALUES (14, 1, 23, 14.90, 100, 1);
+INSERT INTO `store_products` VALUES (15, 1, 24, 8.80, 100, 1);
+INSERT INTO `store_products` VALUES (16, 1, 9, 12.00, 100, 1);
+INSERT INTO `store_products` VALUES (17, 1, 10, 19.50, 100, 1);
+INSERT INTO `store_products` VALUES (18, 1, 11, 5.50, 100, 1);
+INSERT INTO `store_products` VALUES (19, 1, 12, 16.80, 100, 1);
+INSERT INTO `store_products` VALUES (20, 1, 25, 3.50, 100, 1);
+INSERT INTO `store_products` VALUES (21, 1, 26, 7.50, 100, 1);
+INSERT INTO `store_products` VALUES (22, 1, 27, 9.00, 100, 1);
+INSERT INTO `store_products` VALUES (23, 1, 28, 18.00, 100, 1);
+INSERT INTO `store_products` VALUES (24, 1, 13, 8.50, 100, 1);
+INSERT INTO `store_products` VALUES (25, 1, 14, 19.00, 100, 1);
+INSERT INTO `store_products` VALUES (26, 1, 15, 11.50, 100, 1);
+INSERT INTO `store_products` VALUES (27, 1, 29, 7.50, 100, 1);
+INSERT INTO `store_products` VALUES (28, 1, 30, 12.50, 100, 1);
+INSERT INTO `store_products` VALUES (29, 1, 31, 11.00, 100, 1);
+INSERT INTO `store_products` VALUES (30, 1, 16, 28.00, 100, 1);
+INSERT INTO `store_products` VALUES (31, 1, 17, 32.00, 100, 1);
+INSERT INTO `store_products` VALUES (32, 1, 32, 19.90, 100, 1);
+INSERT INTO `store_products` VALUES (33, 1, 33, 25.00, 100, 1);
+INSERT INTO `store_products` VALUES (34, 1, 34, 9.90, 100, 1);
+INSERT INTO `store_products` VALUES (35, 1, 35, 12.00, 100, 1);
+INSERT INTO `store_products` VALUES (36, 1, 36, 13.50, 100, 1);
+INSERT INTO `store_products` VALUES (37, 1, 37, 15.00, 100, 1);
+INSERT INTO `store_products` VALUES (38, 1, 38, 14.50, 100, 1);
+INSERT INTO `store_products` VALUES (39, 1, 39, 6.90, 100, 1);
+INSERT INTO `store_products` VALUES (40, 1, 40, 12.80, 100, 1);
+INSERT INTO `store_products` VALUES (41, 1, 41, 11.90, 100, 1);
+INSERT INTO `store_products` VALUES (42, 1, 42, 8.90, 100, 1);
+INSERT INTO `store_products` VALUES (43, 1, 43, 39.00, 100, 1);
+INSERT INTO `store_products` VALUES (44, 1, 44, 15.50, 100, 1);
+INSERT INTO `store_products` VALUES (45, 1, 45, 9.90, 100, 1);
+INSERT INTO `store_products` VALUES (46, 1, 46, 5.90, 100, 1);
+INSERT INTO `store_products` VALUES (47, 1, 47, 12.90, 100, 1);
+INSERT INTO `store_products` VALUES (64, 2, 1, 28.90, 50, 1);
+INSERT INTO `store_products` VALUES (65, 2, 5, 6.50, 50, 1);
+INSERT INTO `store_products` VALUES (66, 2, 9, 3.50, 50, 1);
+INSERT INTO `store_products` VALUES (67, 2, 13, 7.50, 50, 1);
+INSERT INTO `store_products` VALUES (68, 2, 16, 19.90, 50, 1);
+INSERT INTO `store_products` VALUES (69, 2, 34, 9.90, 50, 1);
+INSERT INTO `store_products` VALUES (70, 2, 39, 6.90, 50, 1);
+INSERT INTO `store_products` VALUES (71, 2, 44, 5.90, 50, 1);
+INSERT INTO `store_products` VALUES (79, 3, 20, 45.00, 40, 1);
+INSERT INTO `store_products` VALUES (80, 3, 24, 22.50, 40, 1);
+INSERT INTO `store_products` VALUES (81, 3, 28, 19.50, 40, 1);
+INSERT INTO `store_products` VALUES (82, 3, 31, 19.00, 40, 1);
+INSERT INTO `store_products` VALUES (83, 3, 33, 32.00, 40, 1);
+INSERT INTO `store_products` VALUES (84, 3, 38, 15.00, 40, 1);
+INSERT INTO `store_products` VALUES (85, 3, 43, 39.00, 40, 1);
+INSERT INTO `store_products` VALUES (86, 3, 47, 15.50, 40, 1);
 
 -- ----------------------------
 -- Table structure for stores
@@ -281,7 +317,7 @@ CREATE TABLE `stores`  (
   `latitude` decimal(10, 8) NULL DEFAULT NULL,
   `longitude` decimal(11, 8) NULL DEFAULT NULL,
   PRIMARY KEY (`store_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of stores
@@ -296,8 +332,8 @@ INSERT INTO `stores` VALUES (3, 'Tech Park Express', 'Silicon Valley Blvd 88', 3
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users`  (
   `user_id` int(0) NOT NULL AUTO_INCREMENT,
-  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '手机�?,
-  `nickname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '新用�?,
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '手机号',
+  `nickname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '新用户',
   `avatar_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `balance` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '余额',
   `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '配送地址',

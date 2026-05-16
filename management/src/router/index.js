@@ -41,7 +41,7 @@ const routes = [
         path: 'users', 
         name: 'Users',
         component: () => import('../views/user/UserList.vue') 
-      }
+      },
       { 
         path: 'stores', 
         name: 'Stores',
@@ -51,7 +51,8 @@ const routes = [
         path: 'stores/:id/products', 
         name: 'StoreProducts',
         component: () => import('../views/store/StoreProducts.vue') 
-      },    ]
+      }    
+    ]
   }
 ]
 

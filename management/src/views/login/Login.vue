@@ -6,7 +6,7 @@
         <el-icon color="white" :size="28"><Box /></el-icon>
       </div>
       
-      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Bento Box</h2>
+      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Convenience Store</h2>
       <p class="text-xs font-medium text-slate-400 mt-1 mb-8">Retail Admin Portal</p>
 
       <div class="space-y-5 text-left">

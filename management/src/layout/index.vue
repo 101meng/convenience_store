@@ -49,7 +49,7 @@
           </el-tooltip>
           
           <div @click="aiVisible = true" class="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-indigo-100 transition-colors">
-            <span class="text-xs font-bold text-primary">鉁?AI Assistant</span>
+            <span class="text-xs font-bold text-primary">AI Assistant</span>
           </div>
           
           <div class="h-6 w-px bg-slate-200 mx-2"></div>
@@ -68,7 +68,7 @@
       </main>
     </div>
 
-    <el-dialog v-model="aiVisible" title="馃 AI Store Assistant" width="500px" class="bento-dialog" destroy-on-close>
+    <el-dialog v-model="aiVisible" title="AI Store Assistant" width="500px" class="bento-dialog" destroy-on-close>
       <div class="flex flex-col h-[400px]">
         <div class="flex-1 overflow-y-auto p-2 space-y-4 mb-4">
           <div v-for="(msg, i) in chatHistory" :key="i" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
@@ -103,7 +103,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { chatWithAi } from '@/api/admin' // 寮曞叆 AI 鎺ュ彛
+import { chatWithAi } from '@/api/admin'
 
 const userInfo = ref({})
 const menu = [
@@ -116,12 +116,11 @@ const menu = [
   { name: 'Users', path: '/users', icon: 'User' },
 ]
 
-// AI 瀵硅瘽閫昏緫
 const aiVisible = ref(false)
 const aiPrompt = ref('')
 const aiLoading = ref(false)
 const chatHistory = ref([
-  { role: 'ai', content: "Hello! I'm powered by LongCat AI. I can help you analyze sales trends, draft marketing emails, or suggest inventory restocks. What do you need help with today?" }
+  { role: 'ai', content: "Hello! I can help you analyze sales trends, draft marketing emails, or suggest inventory restocks. What do you need help with today?" }
 ])
 
 const handleAskAi = async () => {
