@@ -13,6 +13,11 @@ public enum ResultCode {
     SEND_CODE_FAILED(500, "验证码发送失败，请稍后再试"),
     LOGIN_SUCCESS(200, "登录成功"),
     LOGIN_FAILED(400, "验证码错误或已过期，登录失败"),
+    ADMIN_SEND_CODE_SUCCESS(200, "管理端验证码发送成功"),
+    ADMIN_SEND_CODE_FAILED(500, "管理端验证码发送失败，请稍后再试"),
+    ADMIN_LOGIN_SUCCESS(200, "管理端登录成功"),
+    ADMIN_LOGIN_FAILED(400, "管理端账号不存在、已禁用或验证码错误"),
+    FORBIDDEN(403, "您没有权限执行此操作"),
 
     UPDATE_PROFILE_SUCCESS(200, "个人资料更新成功"),
     UPDATE_PROFILE_FAILED(500, "个人资料更新失败，请重试"),

@@ -1,5 +1,7 @@
 package com.lin101.store.utils;
 
+import com.lin101.store.entity.AdminAccount;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +37,7 @@ public class JwtUtils {
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
+                .claim("tokenType", "user")
                 .claim("phone", phone)
                 .issuedAt(now)
                 .expiration(expiryDate)
@@ -42,17 +45,49 @@ public class JwtUtils {
                 .compact();
     }
 
+    public String generateAdminToken(AdminAccount adminAccount) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + expiration);
+
+        return Jwts.builder()
+                .subject(String.valueOf(adminAccount.getAdminId()))
+                .claim("tokenType", "admin")
+                .claim("phone", adminAccount.getPhone())
+                .claim("role", adminAccount.getRole())
+                .claim("storeId", adminAccount.getStoreId())
+                .claim("name", adminAccount.getName())
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSecretKey())
+                .compact();
+    }
+
+    public Claims parseClaims(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(getSecretKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     /**
      * 解析 Token subject 为整数用户 ID；签名错误或过期返回 {@code null}。
      */
     public Integer getUserIdFromToken(String token) {
         try {
-            return Integer.parseInt(Jwts.parser()
-                    .verifyWith(getSecretKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload()
-                    .getSubject());
+            Claims claims = parseClaims(token);
+            if (claims == null) {
+                return null;
+            }
+            Object tokenType = claims.get("tokenType");
+            if (tokenType != null && !"user".equals(tokenType.toString())) {
+                return null;
+            }
+            return Integer.parseInt(claims.getSubject());
         } catch (Exception e) {
             return null;
         }

@@ -6,8 +6,8 @@
         <el-icon color="white" :size="28"><Box /></el-icon>
       </div>
       
-      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Convenience Store</h2>
-      <p class="text-xs font-medium text-slate-400 mt-1 mb-8">Retail Admin Portal</p>
+      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Bento Box Admin</h2>
+      <p class="text-xs font-medium text-slate-400 mt-1 mb-8">Sign in with a management account</p>
 
       <div class="space-y-5 text-left">
         <div>
@@ -37,21 +37,22 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { sendCode, login } from '@/api/auth'
+import { loginAdmin, sendAdminCode } from '@/api/adminAuth'
+import { saveAdminSession } from '@/utils/adminSession'
 
 const router = useRouter()
 const loading = ref(false)
 const countdown = ref(0)
 const form = reactive({
-  phone: '13800138000',
+  phone: '18800000001',
   code: ''
 })
 
 const handleSendCode = async () => {
   if (!form.phone) return ElMessage.warning('Please enter phone number')
   try {
-    await sendCode(form.phone)
-    ElMessage.success('Code sent! (Check backend console)')
+    await sendAdminCode(form.phone)
+    ElMessage.success('Code sent to the admin console output')
     countdown.value = 60
     const timer = setInterval(() => {
       countdown.value--
@@ -65,9 +66,8 @@ const handleLogin = async () => {
   
   loading.value = true
   try {
-    const res = await login(form)
-    localStorage.setItem('token', res.token)
-    localStorage.setItem('userInfo', JSON.stringify(res.user))
+    const res = await loginAdmin(form)
+    saveAdminSession(res.token, res.admin)
     ElMessage.success('Welcome back!')
     router.push('/dashboard')
   } catch (error) {} finally {

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="h-screen w-full flex bg-bg-light overflow-hidden">
     <aside class="w-[260px] bg-white flex flex-col border-r border-slate-100/60 z-10">
       <div class="h-24 flex items-center px-8">
@@ -12,7 +12,7 @@
       </div>
 
       <nav class="flex-1 px-4 space-y-1.5 mt-2">
-        <router-link v-for="item in menu" :key="item.path" :to="item.path" v-slot="{ isActive }">
+        <router-link v-for="item in menuItems" :key="item.path" :to="item.path" v-slot="{ isActive }">
           <div :class="['flex items-center px-4 py-3 rounded-xl transition-all duration-300 group', 
             isActive ? 'bg-indigo-50/70 text-primary font-semibold' : 'text-slate-500 hover:bg-slate-50 font-medium']">
             <el-icon :size="18" :class="isActive ? 'text-primary' : 'text-slate-400 group-hover:text-slate-500'">
@@ -55,8 +55,11 @@
           <div class="h-6 w-px bg-slate-200 mx-2"></div>
           
           <div class="flex items-center gap-3 cursor-pointer">
-             <el-avatar :size="32" :src="userInfo.avatarUrl || 'https://i.pravatar.cc/150'" class="ring-2 ring-white shadow-sm bg-slate-50" />
-             <span class="text-sm font-bold text-slate-700">{{ userInfo.nickname || 'Admin' }}</span>
+             <el-avatar :size="32" :src="userInfo.avatarUrl || 'https://ui-avatars.com/api/?name=A&background=4F46E5&color=fff'" class="ring-2 ring-white shadow-sm bg-slate-50" />
+             <div class="flex flex-col">
+               <span class="text-sm font-bold text-slate-700">{{ userInfo.name || 'Admin' }}</span>
+               <span class="text-[11px] text-slate-400 font-medium">{{ roleLabel }}</span>
+             </div>
           </div>
         </div>
       </header>
@@ -102,19 +105,34 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import { chatWithAi } from '@/api/admin'
+import { clearAdminSession, loadAdminProfile } from '@/utils/adminSession'
 
-const userInfo = ref({})
+const userInfo = ref(loadAdminProfile() || {})
 const menu = [
-  { name: 'Dashboard', path: '/dashboard', icon: 'DataBoard' },
-  { name: 'Products', path: '/products', icon: 'Goods' },
-  { name: 'Categories', path: '/categories', icon: 'CopyDocument' },
-  { name: 'Orders', path: '/orders', icon: 'ShoppingCart' },
-  { name: 'Stores', path: '/stores', icon: 'Shop' },
-  { name: 'Banners', path: '/banners', icon: 'Picture' },
-  { name: 'Users', path: '/users', icon: 'User' },
+  { name: 'Dashboard', path: '/dashboard', icon: 'DataBoard', roles: ['brand_admin', 'store_manager'] },
+  { name: 'Products', path: '/products', icon: 'Goods', roles: ['brand_admin', 'store_manager'] },
+  { name: 'Categories', path: '/categories', icon: 'CopyDocument', roles: ['brand_admin', 'store_manager'] },
+  { name: 'Orders', path: '/orders', icon: 'ShoppingCart', roles: ['brand_admin', 'store_manager'] },
+  { name: 'Stores', path: '/stores', icon: 'Shop', roles: ['brand_admin', 'store_manager'] },
+  { name: 'Banners', path: '/banners', icon: 'Picture', roles: ['brand_admin'] },
+  { name: 'Users', path: '/users', icon: 'User', roles: ['brand_admin'] }
 ]
+
+const menuItems = computed(() => {
+  const role = userInfo.value?.role
+  return menu
+    .filter(item => !item.roles || item.roles.includes(role))
+    .map(item => {
+      if (item.path === '/stores' && role === 'store_manager') {
+        return { ...item, name: 'My Store' }
+      }
+      return item
+    })
+})
+
+const roleLabel = computed(() => userInfo.value?.role === 'store_manager' ? 'Store Manager' : 'Brand Admin')
 
 const aiVisible = ref(false)
 const aiPrompt = ref('')
@@ -141,15 +159,8 @@ const handleAskAi = async () => {
   }
 }
 
-onMounted(() => {
-  const storedUser = localStorage.getItem('userInfo')
-  if (storedUser) {
-    userInfo.value = JSON.parse(storedUser)
-  }
-})
-
 const handleLogout = () => {
-  localStorage.clear()
+  clearAdminSession()
   window.location.href = '/login'
 }
 </script>

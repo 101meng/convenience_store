@@ -112,7 +112,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { getAdminUsers, addUser } from '@/api/admin'
+import { getAdminUsers, addUser, rechargeUser } from '@/api/admin'
 
 const users = ref([])
 const searchKeyword = ref('')

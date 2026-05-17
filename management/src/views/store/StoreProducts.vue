@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-6 flex flex-col h-full">
     <!-- Header -->
     <div class="bg-white p-5 rounded-2xl shadow-bento flex items-center justify-between border border-slate-50 shrink-0">
@@ -129,7 +129,7 @@ const formatImage = (url) => {
 const fetchStoreProducts = async () => {
   try {
     const res = await getStoreProducts(storeId)
-    storeProducts.value = (res.data || []).map(sp => ({
+    storeProducts.value = (Array.isArray(res) ? res : []).map(sp => ({
       ...sp,
       status: sp.status == null ? 1 : sp.status,
       stock: sp.stock == null ? 0 : sp.stock,
@@ -142,8 +142,8 @@ const fetchStoreProducts = async () => {
 
 const fetchAllProducts = async () => {
   try {
-    const res = await getAdminProducts()
-    allProducts.value = (res.data && res.data.records) ? res.data.records : (res.data || [])
+    const res = await getAdminProducts({ current: 1, size: 500 })
+    allProducts.value = res.records || []
   } catch (e) { /* ignore */ }
 }
 
@@ -206,7 +206,7 @@ const handleAssign = async () => {
 
 onMounted(async () => {
   const storesRes = await getStores()
-  const stores = storesRes.data || []
+  const stores = Array.isArray(storesRes) ? storesRes : []
   const store = stores.find(s => s.storeId === storeId)
   storeName.value = store ? store.storeName : 'Store #' + storeId
   fetchStoreProducts()

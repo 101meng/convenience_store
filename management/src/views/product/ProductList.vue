@@ -21,7 +21,7 @@
           <el-switch v-model="flashOnly" color="#4f46e5" @change="handleFilter" />
         </div>
       </div>
-      <el-button @click="openDialog()" type="primary" color="#4f46e5" icon="Plus" class="h-10 px-6 rounded-xl font-semibold shadow-sm">
+      <el-button v-if="isBrandAdmin" @click="openDialog()" type="primary" color="#4f46e5" icon="Plus" class="h-10 px-6 rounded-xl font-semibold shadow-sm">
         Add Product
       </el-button>
     </div>
@@ -47,7 +47,7 @@
           <el-table-column label="Description" prop="description" show-overflow-tooltip min-width="200" />
           <el-table-column label="Price" width="150">
             <template #default="scope">
-              <p class="font-bold text-slate-800">${{ scope.row.price }}</p>
+              <p class="font-bold text-slate-800">${{ scope.row.originalPrice ?? '0.00' }}</p>
             </template>
           </el-table-column>
           <el-table-column label="Status" width="150">
@@ -56,7 +56,7 @@
               <div v-else class="inline-flex items-center px-2.5 py-1 bg-slate-50 text-slate-500 rounded-md text-xs font-semibold">Standard</div>
             </template>
           </el-table-column>
-          <el-table-column label="Actions" align="right" width="120">
+          <el-table-column v-if="isBrandAdmin" label="Actions" align="right" width="120">
             <template #default="scope">
               <el-button link class="text-slate-400 hover:text-primary transition-colors" @click="openDialog(scope.row)"><el-icon :size="18"><EditPen /></el-icon></el-button>
               <el-button link class="text-rose-400 hover:text-rose-600 transition-colors" @click="handleDelete(scope.row.productId)"><el-icon :size="18"><Delete /></el-icon></el-button>
@@ -91,8 +91,8 @@
               <el-option v-for="c in categories" :key="c.categoryId" :label="c.categoryName" :value="c.categoryId" />
             </el-select>
           </el-form-item>
-          <el-form-item label="Price ($)" class="w-32">
-            <el-input-number v-model="form.price" :precision="2" :step="0.1" :min="0" :controls="false" class="w-full bento-input-dialog" />
+          <el-form-item label="Guide Price ($)" class="w-32">
+            <el-input-number v-model="form.originalPrice" :precision="2" :step="0.1" :min="0" :controls="false" class="w-full bento-input-dialog" />
           </el-form-item>
         </div>
         <el-form-item label="Image URL">
@@ -123,18 +123,21 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCategories } from '@/api/store'
 import { getAdminProducts, addProduct, updateProduct, deleteProduct } from '@/api/admin'
+import { loadAdminProfile } from '@/utils/adminSession'
 
 const flashOnly = ref(false)
 const products = ref([])
 const categories = ref([])
 const selectedCategory = ref(null)
+const adminProfile = loadAdminProfile() || {}
+const isBrandAdmin = computed(() => adminProfile.role === 'brand_admin')
 
 const searchKeyword = ref('')
 const pagination = reactive({ current: 1, size: 5, total: 0 })
 
 const dialogVisible = ref(false)
 const form = reactive({
-  productId: null, categoryId: null, name: '', price: 0, imageUrl: '', description: '', isFlashSale: 0
+  productId: null, categoryId: null, name: '', originalPrice: 0, imageUrl: '', description: '', isFlashSale: 0
 })
 
 const formatImageUrl = (url) => {
@@ -173,16 +176,26 @@ const filteredProducts = computed(() => {
 })
 
 const openDialog = (row) => {
+  if (!isBrandAdmin.value) return
   if (row) {
-    Object.assign(form, row)
+    Object.assign(form, {
+      productId: row.productId,
+      categoryId: row.categoryId,
+      name: row.name,
+      originalPrice: row.originalPrice ?? 0,
+      imageUrl: row.imageUrl,
+      description: row.description,
+      isFlashSale: row.isFlashSale ?? 0
+    })
   } else {
-    Object.assign(form, { productId: null, categoryId: null, name: '', price: 0, imageUrl: '', description: '', isFlashSale: 0 })
+    Object.assign(form, { productId: null, categoryId: null, name: '', originalPrice: 0, imageUrl: '', description: '', isFlashSale: 0 })
   }
   dialogVisible.value = true
 }
 
 const handleSave = async () => {
-  if (!form.name || !form.price) return ElMessage.warning('Please fill out the required fields.')
+  if (!isBrandAdmin.value) return
+  if (!form.name || !form.originalPrice) return ElMessage.warning('Please fill out the required fields.')
   try {
     if (form.productId) {
       await updateProduct(form)
@@ -199,6 +212,7 @@ const handleSave = async () => {
 }
 
 const handleDelete = (id) => {
+  if (!isBrandAdmin.value) return
   ElMessageBox.confirm('Are you sure you want to delete this product?', 'Warning', {
     confirmButtonText: 'Delete', cancelButtonText: 'Cancel', type: 'warning'
   }).then(async () => {

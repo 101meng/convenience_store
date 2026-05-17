@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-6 flex flex-col h-full">
     <div class="bg-white p-5 rounded-2xl shadow-bento flex items-center justify-between border border-slate-50 shrink-0">
       <div class="flex items-center gap-5 flex-1">
@@ -12,14 +12,14 @@
           @clear="handleFilter"
         />
       </div>
-      <el-button @click="openDialog()" type="primary" color="#4f46e5" icon="Plus" class="h-10 px-6 rounded-xl font-semibold shadow-sm">
+      <el-button v-if="isBrandAdmin" @click="openDialog()" type="primary" color="#4f46e5" icon="Plus" class="h-10 px-6 rounded-xl font-semibold shadow-sm">
         Add Store
       </el-button>
     </div>
 
     <div class="bg-white rounded-layout shadow-bento flex-1 flex flex-col overflow-hidden border border-slate-50">
       <div class="p-6 border-b border-slate-50 flex justify-between items-center shrink-0">
-        <h2 class="text-lg font-bold text-slate-800">Store List</h2>
+        <h2 class="text-lg font-bold text-slate-800">{{ isBrandAdmin ? 'Store List' : 'My Store' }}</h2>
       </div>
       
       <div class="flex-1 overflow-auto">
@@ -32,6 +32,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="phone" label="Phone" width="150" />
+          <el-table-column prop="hours" label="Hours" width="140" />
           <el-table-column label="Actions" align="right" width="200">
             <template #default="scope">
               <el-button link type="primary" @click="$router.push({ name: 'StoreProducts', params: { id: scope.row.storeId } })">
@@ -41,7 +42,7 @@
               <el-button link class="text-slate-400 hover:text-primary transition-colors" @click="openDialog(scope.row)">
                 <el-icon :size="18"><EditPen /></el-icon>
               </el-button>
-              <el-button link class="text-rose-400 hover:text-rose-600 transition-colors" @click="handleDelete(scope.row.storeId)">
+              <el-button v-if="isBrandAdmin" link class="text-rose-400 hover:text-rose-600 transition-colors" @click="handleDelete(scope.row.storeId)">
                 <el-icon :size="18"><Delete /></el-icon>
               </el-button>
             </template>
@@ -80,12 +81,15 @@
 import { ref, computed, onMounted } from 'vue'
 import { getStores, addStore, updateStore, deleteStore } from '../../api/admin'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { loadAdminProfile } from '@/utils/adminSession'
 
 const stores = ref([])
 const searchKeyword = ref('')
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const form = ref({ storeName: '', address: '', phone: '', hours: '' })
+const adminProfile = loadAdminProfile() || {}
+const isBrandAdmin = computed(() => adminProfile.role === 'brand_admin')
 
 const filteredStores = computed(() => {
   if (!searchKeyword.value) return stores.value
@@ -96,7 +100,7 @@ const filteredStores = computed(() => {
 const fetchData = async () => {
   try {
     const res = await getStores()
-    stores.value = res.data || []
+    stores.value = Array.isArray(res) ? res : []
   } catch (e) {
     ElMessage.error('Failed to load stores')
   }
@@ -119,6 +123,7 @@ const handleSave = async () => {
       await updateStore(form.value)
       ElMessage.success('Store updated')
     } else {
+      if (!isBrandAdmin.value) return
       await addStore(form.value)
       ElMessage.success('Store created')
     }

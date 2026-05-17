@@ -12,9 +12,11 @@ import java.util.Map;
 @Mapper
 public interface StoreProductMapper extends BaseMapper<StoreProduct> {
 
-    @Select("SELECT sp.*, p.name as product_name, p.image_url, p.category_id " +
+    @Select("SELECT sp.id, sp.store_id, sp.product_id, sp.store_price as price, sp.stock, sp.status, " +
+            "p.name as product_name, p.image_url, p.category_id " +
             "FROM store_products sp " +
             "LEFT JOIN products p ON sp.product_id = p.product_id " +
-            "WHERE sp.store_id = #{storeId}")
+            "WHERE sp.store_id = #{storeId} " +
+            "ORDER BY sp.id DESC")
     List<Map<String, Object>> getStoreProductsWithInfo(@Param("storeId") Integer storeId);
 }

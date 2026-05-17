@@ -1,9 +1,14 @@
-﻿import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
+import { loadAdminSession } from '@/utils/adminSession'
+
+const BRAND_ADMIN = 'brand_admin'
+const STORE_MANAGER = 'store_manager'
 
 const routes = [
   {
     path: '/login',
     name: 'Login',
+    meta: { public: true },
     component: () => import('../views/login/Login.vue')
   },
   {
@@ -12,46 +17,54 @@ const routes = [
     component: () => import('../layout/index.vue'),
     redirect: '/dashboard',
     children: [
-      { 
-        path: 'dashboard', 
+      {
+        path: 'dashboard',
         name: 'Dashboard',
-        component: () => import('../views/dashboard/Dashboard.vue') 
+        meta: { roles: [BRAND_ADMIN, STORE_MANAGER] },
+        component: () => import('../views/dashboard/Dashboard.vue')
       },
-      { 
-        path: 'products', 
+      {
+        path: 'products',
         name: 'Products',
-        component: () => import('../views/product/ProductList.vue') 
+        meta: { roles: [BRAND_ADMIN, STORE_MANAGER] },
+        component: () => import('../views/product/ProductList.vue')
       },
-      { 
-        path: 'categories', 
+      {
+        path: 'categories',
         name: 'Categories',
-        component: () => import('../views/category/CategoryList.vue') 
+        meta: { roles: [BRAND_ADMIN, STORE_MANAGER] },
+        component: () => import('../views/category/CategoryList.vue')
       },
-      { 
-        path: 'orders', 
+      {
+        path: 'orders',
         name: 'Orders',
-        component: () => import('../views/order/OrderList.vue') 
+        meta: { roles: [BRAND_ADMIN, STORE_MANAGER] },
+        component: () => import('../views/order/OrderList.vue')
       },
-      { 
-        path: 'banners', 
+      {
+        path: 'banners',
         name: 'Banners',
-        component: () => import('../views/banner/BannerList.vue') 
+        meta: { roles: [BRAND_ADMIN] },
+        component: () => import('../views/banner/BannerList.vue')
       },
-      { 
-        path: 'users', 
+      {
+        path: 'users',
         name: 'Users',
-        component: () => import('../views/user/UserList.vue') 
+        meta: { roles: [BRAND_ADMIN] },
+        component: () => import('../views/user/UserList.vue')
       },
-      { 
-        path: 'stores', 
+      {
+        path: 'stores',
         name: 'Stores',
-        component: () => import('../views/store/StoreList.vue') 
+        meta: { roles: [BRAND_ADMIN, STORE_MANAGER] },
+        component: () => import('../views/store/StoreList.vue')
       },
-      { 
-        path: 'stores/:id/products', 
+      {
+        path: 'stores/:id/products',
         name: 'StoreProducts',
-        component: () => import('../views/store/StoreProducts.vue') 
-      }    
+        meta: { roles: [BRAND_ADMIN, STORE_MANAGER] },
+        component: () => import('../views/store/StoreProducts.vue')
+      }
     ]
   }
 ]
@@ -59,6 +72,36 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+router.beforeEach((to) => {
+  const session = loadAdminSession()
+  const isLoggedIn = Boolean(session.token)
+
+  if (to.meta.public) {
+    if (isLoggedIn && to.path === '/login') {
+      return '/dashboard'
+    }
+    return true
+  }
+
+  if (!isLoggedIn) {
+    return '/login'
+  }
+
+  const allowedRoles = to.meta.roles
+  if (allowedRoles && !allowedRoles.includes(session.role)) {
+    return session.role === STORE_MANAGER ? '/dashboard' : '/dashboard'
+  }
+
+  if (to.name === 'StoreProducts' && session.role === STORE_MANAGER) {
+    const targetStoreId = Number(to.params.id)
+    if (session.storeId && targetStoreId !== Number(session.storeId)) {
+      return `/stores/${session.storeId}/products`
+    }
+  }
+
+  return true
 })
 
 export default router

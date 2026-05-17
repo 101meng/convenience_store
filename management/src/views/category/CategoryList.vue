@@ -6,7 +6,7 @@
           <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Categories</h2>
           <p class="text-slate-500 text-sm mt-1">Manage and organize your product catalog.</p>
         </div>
-        <el-button @click="dialogVisible = true" type="primary" color="#4f46e5" icon="Plus" class="h-10 px-6 rounded-xl font-semibold shadow-sm">
+        <el-button v-if="isBrandAdmin" @click="dialogVisible = true" type="primary" color="#4f46e5" icon="Plus" class="h-10 px-6 rounded-xl font-semibold shadow-sm">
           Add Category
         </el-button>
       </div>
@@ -37,7 +37,7 @@
               </template>
             </el-table-column>
             
-            <el-table-column label="Actions" align="right">
+            <el-table-column v-if="isBrandAdmin" label="Actions" align="right">
               <template #default="scope">
                 <el-button link type="danger" class="text-rose-400 hover:text-rose-600 transition-colors" @click="handleDelete(scope.row.categoryId)">
                   <el-icon :size="18"><Delete /></el-icon>
@@ -97,10 +97,13 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCategories } from '@/api/store'
 import { addCategory, deleteCategory } from '@/api/admin' // 引入新的API
+import { loadAdminProfile } from '@/utils/adminSession'
 
 const categories = ref([])
 const searchCat = ref('')
 const pagination = reactive({ current: 1, size: 5, total: 0 })
+const adminProfile = loadAdminProfile() || {}
+const isBrandAdmin = computed(() => adminProfile.role === 'brand_admin')
 
 // 弹窗状态
 const dialogVisible = ref(false)
@@ -141,6 +144,7 @@ onMounted(() => {
 
 // 🔥 真实新增分类
 const handleSave = async () => {
+  if (!isBrandAdmin.value) return
   if (!newCatName.value) return ElMessage.warning("Please enter category name")
   try {
     await addCategory({ categoryName: newCatName.value })
@@ -153,6 +157,7 @@ const handleSave = async () => {
 
 // 🔥 真实删除分类（附带商品校验保护提示）
 const handleDelete = (id) => {
+  if (!isBrandAdmin.value) return
   ElMessageBox.confirm('Are you sure you want to delete this category?', 'Warning', {
     confirmButtonText: 'Delete', cancelButtonText: 'Cancel', type: 'warning'
   }).then(async () => {

@@ -13,7 +13,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080', // 你的 Spring Boot 后端地址
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080', // 你的 Spring Boot 后端地址
         changeOrigin: true // 欺骗后端，假装是同源请求
       }
     }

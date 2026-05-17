@@ -18,6 +18,10 @@ public class Store {
 
     private String address;
 
+    private String phone;
+
+    private String hours;
+
     private BigDecimal latitude;
 
     private BigDecimal longitude;

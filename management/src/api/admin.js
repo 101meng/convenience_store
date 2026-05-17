@@ -211,7 +211,7 @@ export function addStore(data) {
  * @returns {Promise} 请求结果
  */
 export function updateStore(data) { 
-  return request({ url: '/admin/stores', method: 'put', data }) 
+  return request({ url: `/admin/stores/${data.storeId}`, method: 'put', data }) 
 }
 
 /**
@@ -248,7 +248,7 @@ export function addStoreProduct(data) {
  * @returns {Promise} 请求结果
  */
 export function updateStoreProduct(data) { 
-  return request({ url: '/admin/store-products', method: 'put', data }) 
+  return request({ url: `/admin/store-products/${data.id}`, method: 'put', data }) 
 }
 
 /**

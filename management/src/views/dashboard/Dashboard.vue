@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div>
       <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Dashboard Overview</h2>
-      <p class="text-slate-500 text-sm mt-1">Welcome back to Bento Box Admin.</p>
+      <p class="text-slate-500 text-sm mt-1">{{ subtitle }}</p>
     </div>
 
     <div class="grid grid-cols-4 gap-6">
@@ -38,27 +38,27 @@
 
       <div class="bg-white p-6 rounded-layout shadow-bento border border-slate-50">
         <div class="flex justify-between items-start">
-          <p class="text-sm font-bold text-slate-800">Registered Users</p>
+          <p class="text-sm font-bold text-slate-800">{{ userMetricTitle }}</p>
           <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-primary">
             <el-icon><User /></el-icon>
           </div>
         </div>
         <div class="mt-4">
           <p class="text-3xl font-black text-slate-800">{{ stats.newUsers || 0 }}</p>
-          <p class="text-xs font-semibold text-slate-400 mt-2">Total accounts created</p>
+          <p class="text-xs font-semibold text-slate-400 mt-2">{{ userMetricHint }}</p>
         </div>
       </div>
 
       <div class="bg-white p-6 rounded-layout shadow-bento border border-slate-50">
         <div class="flex justify-between items-start">
-          <p class="text-sm font-bold text-slate-800">Active Banners</p>
+          <p class="text-sm font-bold text-slate-800">{{ inventoryMetricTitle }}</p>
           <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-primary">
             <el-icon><Picture /></el-icon>
           </div>
         </div>
         <div class="mt-4">
           <p class="text-3xl font-black text-slate-800">{{ stats.activeBanners || 0 }}</p>
-          <p class="text-xs font-semibold text-slate-400 mt-2">Currently running</p>
+          <p class="text-xs font-semibold text-slate-400 mt-2">{{ inventoryMetricHint }}</p>
         </div>
       </div>
     </div>
@@ -103,14 +103,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { getAdminStats, getAdminCharts } from '@/api/admin'
 import * as echarts from 'echarts'
+import { loadAdminProfile } from '@/utils/adminSession'
 
 const stats = ref({})
 const timeRange = ref(7)
 const topCategories = ref([])
 const pieColors = ['#4f46e5', '#0d9488', '#eab308', '#f43f5e', '#8b5cf6']
+const adminProfile = loadAdminProfile() || {}
+const isStoreManager = computed(() => adminProfile.role === 'store_manager')
+const subtitle = computed(() => isStoreManager.value ? 'Your dashboard is scoped to the store you manage.' : 'Welcome back to Bento Box Admin.')
+const userMetricTitle = computed(() => isStoreManager.value ? 'Served Customers' : 'Registered Users')
+const userMetricHint = computed(() => isStoreManager.value ? 'Distinct customers who ordered here' : 'Total accounts created')
+const inventoryMetricTitle = computed(() => isStoreManager.value ? 'Active SKUs' : 'Active Banners')
+const inventoryMetricHint = computed(() => isStoreManager.value ? 'Enabled products in this store' : 'Currently running')
 
 const lineChartRef = ref(null)
 const pieChartRef = ref(null)

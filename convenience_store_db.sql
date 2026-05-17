@@ -311,20 +311,49 @@ INSERT INTO `store_products` VALUES (86, 3, 47, 15.50, 40, 1);
 -- ----------------------------
 DROP TABLE IF EXISTS `stores`;
 CREATE TABLE `stores`  (
-  `store_id` int(0) NOT NULL AUTO_INCREMENT,
-  `store_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `latitude` decimal(10, 8) NULL DEFAULT NULL,
-  `longitude` decimal(11, 8) NULL DEFAULT NULL,
-  PRIMARY KEY (`store_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+    `store_id` int(0) NOT NULL AUTO_INCREMENT,
+    `store_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+    `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+    `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+    `hours` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+    `latitude` decimal(10, 8) NULL DEFAULT NULL,
+    `longitude` decimal(11, 8) NULL DEFAULT NULL,
+    PRIMARY KEY (`store_id`) USING BTREE
+  ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of stores
 -- ----------------------------
-INSERT INTO `stores` VALUES (1, 'Market Street Flagship', '123 Market St, San Francisco, CA', 37.77490000, -122.41940000);
-INSERT INTO `stores` VALUES (2, 'GreenLoop Market', 'Downtown, 5th Avenue 102', 37.78330000, -122.41670000);
-INSERT INTO `stores` VALUES (3, 'Tech Park Express', 'Silicon Valley Blvd 88', 37.38810000, -122.08280000);
+INSERT INTO `stores` VALUES (1, 'Market Street Flagship', '123 Market St, San Francisco, CA', '415-555-0101', '07:00-23:00', 37.77490000, -122.41940000);
+INSERT INTO `stores` VALUES (2, 'GreenLoop Market', 'Downtown, 5th Avenue 102', '415-555-0102', '08:00-22:00', 37.78330000, -122.41670000);
+INSERT INTO `stores` VALUES (3, 'Tech Park Express', 'Silicon Valley Blvd 88', '415-555-0103', '24 Hours', 37.38810000, -122.08280000);
+
+-- ----------------------------
+-- Table structure for admin_accounts
+-- ----------------------------
+DROP TABLE IF EXISTS `admin_accounts`;
+CREATE TABLE `admin_accounts`  (
+    `admin_id` int(0) NOT NULL AUTO_INCREMENT,
+    `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '管理端登录手机号',
+    `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+    `role` enum('brand_admin','store_manager') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '品牌总管理/门店店长',
+    `store_id` int(0) NULL DEFAULT NULL COMMENT '店长绑定门店，品牌总管理可空',
+    `avatar_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+    `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1启用 0禁用',
+    `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+    `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
+    PRIMARY KEY (`admin_id`) USING BTREE,
+    UNIQUE INDEX `uk_admin_phone`(`phone`) USING BTREE,
+    INDEX `idx_admin_store_id`(`store_id`) USING BTREE,
+    CONSTRAINT `admin_accounts_ibfk_1` FOREIGN KEY (`store_id`) REFERENCES `stores` (`store_id`) ON DELETE SET NULL ON UPDATE RESTRICT
+  ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of admin_accounts
+-- ----------------------------
+INSERT INTO `admin_accounts` VALUES (1, '18800000001', 'Brand Admin', 'brand_admin', NULL, 'https://ui-avatars.com/api/?name=B&background=4F46E5&color=fff&size=200', 1, '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `admin_accounts` VALUES (2, '18800000011', 'Market Street Manager', 'store_manager', 1, 'https://ui-avatars.com/api/?name=M&background=0EA5E9&color=fff&size=200', 1, '2026-05-09 13:25:57', '2026-05-09 13:25:57');
+INSERT INTO `admin_accounts` VALUES (3, '18800000012', 'GreenLoop Manager', 'store_manager', 2, 'https://ui-avatars.com/api/?name=G&background=10B981&color=fff&size=200', 1, '2026-05-09 13:25:57', '2026-05-09 13:25:57');
 
 -- ----------------------------
 -- Table structure for users

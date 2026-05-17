@@ -1,5 +1,6 @@
 package com.lin101.store.config;
 
+import com.lin101.store.interceptor.AdminJwtInterceptor;
 import com.lin101.store.interceptor.JwtInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private JwtInterceptor jwtInterceptor;
 
+    @Autowired
+    private AdminJwtInterceptor adminJwtInterceptor;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
@@ -27,5 +31,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/categories",
                         "/api/products/**"
                 );
+
+        registry.addInterceptor(adminJwtInterceptor)
+                .addPathPatterns("/api/admin/**");
     }
 }
