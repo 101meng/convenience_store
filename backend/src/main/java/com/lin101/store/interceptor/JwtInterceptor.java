@@ -14,6 +14,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
 
+    public static final String ATTR_USER_ID = "userId";
+
     @Autowired
     private JwtUtils jwtUtils;
 
@@ -33,7 +35,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             Integer userId = jwtUtils.getUserIdFromToken(token);
 
             if (userId != null) {
-                request.setAttribute("userId", userId);
+                request.setAttribute(ATTR_USER_ID, userId);
                 return true;
             }
         }

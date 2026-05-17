@@ -89,7 +89,6 @@ class ProductDetailViewModel(application: Application) : AndroidViewModel(applic
 
                 // 2. 组装请求参数
                 val request = CartAddReq(
-                    userId = userId,
                     productId = currentProduct.productId,
                     quantity = _quantity.value
                 )

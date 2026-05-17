@@ -360,7 +360,7 @@ fun ActionButton(status: String, onClick: () -> Unit) {
                 contentPadding = PaddingValues(horizontal = 28.dp, vertical = 0.dp),
                 modifier = Modifier.height(44.dp)
             ) {
-                Text("Track", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text("Mark Received", fontWeight = FontWeight.Bold, fontSize = 15.sp)
             }
         }
         "pending" -> {

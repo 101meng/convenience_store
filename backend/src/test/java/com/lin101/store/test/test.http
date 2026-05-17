@@ -1,22 +1,90 @@
-### 1. 测试发送验证码 (GET 请求)
-GET http://localhost:8080/api/auth/sendCode?phone=15839816471
+@baseUrl = http://localhost:8080
+@phone = 15839816471
+@code = 123456
+@userToken = replace-with-jwt-token
+@storeId = 1
+@cartId = 1
+@orderId = 1
+
+### 1. 发送验证码
+GET {{baseUrl}}/api/auth/sendCode?phone={{phone}}
 Accept: application/json
 
-### 2. 测试登录与静默注册 (POST 请求)
-POST http://localhost:8080/api/auth/login
+### 2. 登录 / 静默注册
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "phone": "15839816471",
-  "code": "799202"
+  "phone": "{{phone}}",
+  "code": "{{code}}"
 }
 
-### 3. 测试更新用户资料 (POST 请求)
-POST http://localhost:8080/api/user/update
+### 3. 更新用户资料（JWT）
+POST {{baseUrl}}/api/user/update
 Content-Type: application/json
+Authorization: Bearer {{userToken}}
 
 {
-  "phone": "15839816471",
   "nickname": "毕业设计大佬",
   "address": "宇宙中心大街 888 号"
 }
+
+### 4. 加入购物车（JWT + 门店上下文）
+POST {{baseUrl}}/api/cart/add
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+X-Store-Id: {{storeId}}
+
+{
+  "productId": 2,
+  "quantity": 1
+}
+
+### 5. 查询购物车（JWT + 门店上下文）
+GET {{baseUrl}}/api/cart/list
+Accept: application/json
+Authorization: Bearer {{userToken}}
+X-Store-Id: {{storeId}}
+
+### 6. 更新购物车数量（JWT）
+PUT {{baseUrl}}/api/cart/update
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "cartId": {{cartId}},
+  "quantity": 3
+}
+
+### 7. 删除购物车项（JWT）
+DELETE {{baseUrl}}/api/cart/delete/{{cartId}}
+Accept: application/json
+Authorization: Bearer {{userToken}}
+
+### 8. 提交订单（JWT + 门店上下文）
+POST {{baseUrl}}/api/order/submit
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+X-Store-Id: {{storeId}}
+
+{
+  "orderType": "shipping",
+  "paymentMethod": "wechat",
+  "deliveryAddress": "宇宙中心大街 888 号",
+  "deliveryFee": 1.50
+}
+
+### 9. 支付订单（JWT）
+POST {{baseUrl}}/api/order/pay?orderId={{orderId}}
+Accept: application/json
+Authorization: Bearer {{userToken}}
+
+### 10. 查询订单列表（JWT）
+GET {{baseUrl}}/api/order/list
+Accept: application/json
+Authorization: Bearer {{userToken}}
+
+### 11. 确认收货（JWT）
+POST {{baseUrl}}/api/order/receive?orderId={{orderId}}
+Accept: application/json
+Authorization: Bearer {{userToken}}

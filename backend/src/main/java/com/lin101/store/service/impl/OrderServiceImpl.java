@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -52,8 +53,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             vo.setOrderId(order.getOrderId());
             vo.setOrderSn(order.getOrderSn());
             vo.setActualAmount(order.getActualAmount());
-            vo.setStatus(order.getStatus().toUpperCase());
-            vo.setOrderType(order.getOrderType());
+            vo.setStatus(order.getStatus() == null ? null : order.getStatus().toLowerCase(Locale.ROOT));
+            vo.setOrderType(order.getOrderType() == null ? null : order.getOrderType().toLowerCase(Locale.ROOT));
+            vo.setDeliveryAddress(order.getDeliveryAddress());
 
             if (order.getCreatedAt() != null) {
                 vo.setCreatedAt(order.getCreatedAt().format(formatter));
@@ -70,10 +72,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String submitOrder(OrderSubmitReq req) {
-        List<CartVO> cartItems = cartMapper.getCartItemsWithProductInfo(req.getUserId(), req.getStoreId());
+    public String submitOrder(Integer userId, Integer storeId, OrderSubmitReq req) {
+        validateSubmitRequest(userId, storeId, req);
+
+        List<CartVO> cartItems = cartMapper.getCartItemsWithProductInfo(userId, storeId);
         if (cartItems == null || cartItems.isEmpty()) {
-            throw new IllegalArgumentException("Cart is empty");
+            throw new IllegalStateException("Cart is empty");
         }
 
         double subtotal = 0.0;
@@ -87,16 +91,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
         Order order = new Order();
         order.setOrderSn(orderSn);
-        order.setUserId(req.getUserId());
-        order.setStoreId(req.getStoreId());
+        order.setUserId(userId);
+        order.setStoreId(storeId);
         order.setTotalAmount(subtotal);
         order.setDeliveryFee(deliveryFee);
         order.setActualAmount(actualAmount);
-        order.setDeliveryAddress(req.getDeliveryAddress());
-        order.setOrderType(req.getOrderType());
-        order.setPaymentMethod(req.getPaymentMethod());
-        order.setStatus("completed");
-        order.setDeliveryAddress(req.getDeliveryAddress());
+        order.setDeliveryAddress("pickup".equalsIgnoreCase(req.getOrderType()) ? null : req.getDeliveryAddress().trim());
+        order.setOrderType(req.getOrderType().trim().toLowerCase(Locale.ROOT));
+        order.setPaymentMethod(req.getPaymentMethod().trim());
+        order.setStatus("pending");
         order.setCreatedAt(LocalDateTime.now());
 
         orderMapper.insert(order);
@@ -111,9 +114,62 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         }
 
         QueryWrapper<Cart> deleteCartWrapper = new QueryWrapper<>();
-        deleteCartWrapper.eq("user_id", req.getUserId());
+        deleteCartWrapper.eq("user_id", userId).eq("store_id", storeId);
         cartMapper.delete(deleteCartWrapper);
 
         return orderSn;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void payOrder(Integer userId, Integer orderId) {
+        transitionOrderStatus(userId, orderId, "pending", "delivering");
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void receiveOrder(Integer userId, Integer orderId) {
+        transitionOrderStatus(userId, orderId, "delivering", "completed");
+    }
+
+    private void validateSubmitRequest(Integer userId, Integer storeId, OrderSubmitReq req) {
+        if (userId == null || storeId == null || req == null) {
+            throw new IllegalArgumentException("Missing order context");
+        }
+        if (req.getOrderType() == null || req.getPaymentMethod() == null) {
+            throw new IllegalArgumentException("Missing order fields");
+        }
+
+        String orderType = req.getOrderType().trim().toLowerCase(Locale.ROOT);
+        if (!"pickup".equals(orderType) && !"shipping".equals(orderType)) {
+            throw new IllegalArgumentException("Unsupported order type");
+        }
+        if (req.getPaymentMethod().trim().isEmpty()) {
+            throw new IllegalArgumentException("Payment method is required");
+        }
+        if ("shipping".equals(orderType)
+                && (req.getDeliveryAddress() == null || req.getDeliveryAddress().trim().isEmpty())) {
+            throw new IllegalArgumentException("Delivery address is required for shipping orders");
+        }
+    }
+
+    private void transitionOrderStatus(Integer userId, Integer orderId, String currentStatus, String nextStatus) {
+        if (userId == null || orderId == null) {
+            throw new IllegalArgumentException("Order id is required");
+        }
+
+        Order order = this.getById(orderId);
+        if (order == null) {
+            throw new IllegalStateException("Order not found");
+        }
+        if (!Objects.equals(order.getUserId(), userId)) {
+            throw new SecurityException("Order does not belong to current user");
+        }
+        if (!currentStatus.equalsIgnoreCase(order.getStatus())) {
+            throw new IllegalStateException("Invalid order status");
+        }
+
+        order.setStatus(nextStatus);
+        this.updateById(order);
     }
 }

@@ -3,8 +3,6 @@ package com.lin101.store.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lin101.store.common.AdminRole;
 import com.lin101.store.common.Result;
 import com.lin101.store.common.ResultCode;
@@ -17,6 +15,7 @@ import com.lin101.store.entity.StoreProduct;
 import com.lin101.store.entity.User;
 import com.lin101.store.interceptor.AdminJwtInterceptor;
 import com.lin101.store.mapper.OrderMapper;
+import com.lin101.store.service.AiService;
 import com.lin101.store.service.BannerService;
 import com.lin101.store.service.CategoryService;
 import com.lin101.store.service.OrderService;
@@ -26,10 +25,6 @@ import com.lin101.store.service.StoreService;
 import com.lin101.store.service.UserService;
 import com.lin101.store.vo.OrderVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -81,6 +75,9 @@ public class AdminController {
 
     @Autowired
     private StoreProductService storeProductService;
+
+    @Autowired
+    private AiService aiService;
 
     @GetMapping("/dashboard/stats")
     public Result<Map<String, Object>> getDashboardStats(
@@ -537,40 +534,7 @@ public class AdminController {
             if (prompt == null || prompt.trim().isEmpty()) {
                 return Result.failed(ResultCode.VALIDATE_FAILED);
             }
-
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "LongCat-Flash-Chat");
-            requestBody.put("temperature", 0.7);
-
-            List<Map<String, String>> messages = new ArrayList<>();
-            Map<String, String> sysMsg = new HashMap<>();
-            sysMsg.put("role", "system");
-            sysMsg.put("content", "You are an AI Retail Store Manager Assistant for 'Bento Box'. Answer the user briefly and professionally. You can help analyze data, draft marketing emails, or give store advice.");
-            Map<String, String> userMsg = new HashMap<>();
-            userMsg.put("role", "user");
-            userMsg.put("content", prompt);
-            messages.add(sysMsg);
-            messages.add(userMsg);
-            requestBody.put("messages", messages);
-
-            RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer ak_2nY9d21Xa7PM9Wd5HD4vH48q6fY8g");
-
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    "https://api.longcat.chat/openai/v1/chat/completions",
-                    entity,
-                    String.class
-            );
-
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(response.getBody());
-            return Result.success(
-                    ResultCode.SUCCESS,
-                    rootNode.path("choices").get(0).path("message").path("content").asText()
-            );
+            return Result.success(ResultCode.SUCCESS, aiService.adminChat(prompt));
         } catch (Exception e) {
             return Result.failed(ResultCode.FAILED);
         }

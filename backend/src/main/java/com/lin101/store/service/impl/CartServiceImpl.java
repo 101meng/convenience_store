@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements CartService {
@@ -19,6 +20,10 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements Ca
 
     @Override
     public void addToCart(Integer userId, Integer productId, Integer quantity, Integer storeId) {
+        if (userId == null || productId == null || quantity == null || storeId == null || quantity <= 0) {
+            throw new IllegalArgumentException("Invalid cart add request");
+        }
+
         QueryWrapper<Cart> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId)
                 .eq("product_id", productId)
@@ -42,25 +47,45 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements Ca
 
     @Override
     public List<CartVO> getUserCartList(Integer userId, Integer storeId) {
+        if (userId == null || storeId == null) {
+            throw new IllegalArgumentException("Invalid cart list request");
+        }
         return cartMapper.getCartItemsWithProductInfo(userId, storeId);
     }
 
     @Override
-    public void updateCartQuantity(Integer cartId, Integer quantity) {
-        Cart cart = this.getById(cartId);
-        if (cart != null) {
-            if (quantity <= 0) {
-                this.removeById(cartId);
-            } else {
-                cart.setQuantity(quantity);
-                this.updateById(cart);
-            }
+    public void updateCartQuantity(Integer userId, Integer cartId, Integer quantity) {
+        if (quantity == null) {
+            throw new IllegalArgumentException("Quantity is required");
+        }
+
+        Cart cart = getOwnedCart(userId, cartId);
+        if (quantity <= 0) {
+            this.removeById(cartId);
+        } else {
+            cart.setQuantity(quantity);
+            this.updateById(cart);
         }
     }
 
     @Override
-    public void removeCartItem(Integer cartId) {
+    public void removeCartItem(Integer userId, Integer cartId) {
+        getOwnedCart(userId, cartId);
         this.removeById(cartId);
     }
 
+    private Cart getOwnedCart(Integer userId, Integer cartId) {
+        if (userId == null || cartId == null) {
+            throw new IllegalArgumentException("Cart id is required");
+        }
+
+        Cart cart = this.getById(cartId);
+        if (cart == null) {
+            throw new IllegalStateException("Cart item not found");
+        }
+        if (!Objects.equals(cart.getUserId(), userId)) {
+            throw new SecurityException("Cart item does not belong to current user");
+        }
+        return cart;
+    }
 }

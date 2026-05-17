@@ -34,6 +34,10 @@ public enum ResultCode {
     ORDER_SUBMIT_SUCCESS(200, "订单提交成功，即将跳转"),
     ORDER_SUBMIT_FAILED(500, "订单提交失败，请重试"),
     ORDER_CART_EMPTY(400, "购物车为空，无法下单"),
+    ORDER_PAY_SUCCESS(200, "订单支付成功"),
+    ORDER_PAY_FAILED(400, "订单当前状态不可支付"),
+    ORDER_RECEIVE_SUCCESS(200, "订单已确认收货"),
+    ORDER_RECEIVE_FAILED(400, "订单当前状态不可确认收货"),
 
 
     PRODUCT_NOT_FOUND(500, "找不到商品");

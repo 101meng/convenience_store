@@ -108,9 +108,9 @@ class CheckoutViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             try {
                 val prefs = context.dataStore.data.first()
-                val userId = prefs[UserPreferences.USER_ID_KEY] ?: return@launch
+                if (prefs[UserPreferences.USER_ID_KEY] == null) return@launch
 
-                val response = ApiClient.storeService.getCartList(userId)
+                val response = ApiClient.storeService.getCartList()
                 if (response.code == 200 && response.data != null) {
                     _cartItems.value = response.data
                     calculateSubtotal()
@@ -140,10 +140,12 @@ class CheckoutViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             try {
                 val prefs = context.dataStore.data.first()
-                val userId = prefs[UserPreferences.USER_ID_KEY] ?: return@launch
+                if (prefs[UserPreferences.USER_ID_KEY] == null) {
+                    _uiEvent.emit("Please log in first")
+                    return@launch
+                }
                 val currentAddress = _deliveryAddress.value
                 val currentMode = _shoppingMode.value
-                val currentStoreId = _storeId.value
                 val currentPaymentCode = _selectedPayment.value
 
                 // 外卖模式且地址为空时拦截
@@ -153,8 +155,6 @@ class CheckoutViewModel(application: Application) : AndroidViewModel(application
                 }
 
                 val req = OrderModels.OrderSubmitReq(
-                    userId = userId,
-                    storeId = if (currentMode == "pickup") currentStoreId else null,
                     orderType = currentMode,
                     paymentMethod = currentPaymentCode,   // 传递 code，如 "wechat"
                     deliveryAddress = if (currentMode == "pickup") null else currentAddress,

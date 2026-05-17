@@ -12,8 +12,8 @@ import com.lin101.convenience_store.data.model.LoginRequest
 import com.lin101.convenience_store.data.model.OrderModels
 import com.lin101.convenience_store.data.model.Product
 import com.lin101.convenience_store.data.model.Store
+import com.lin101.convenience_store.data.model.UpdateProfileData
 import com.lin101.convenience_store.data.model.UpdateProfileRequest
-import com.lin101.convenience_store.data.model.UpdateProfileResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -32,7 +32,7 @@ interface StoreApiService {
     suspend fun login(@Body request: LoginRequest): BaseResponse<AuthData>
 
     @POST("api/user/update")
-    suspend fun updateProfile(@Body request: UpdateProfileRequest): UpdateProfileResponse
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): BaseResponse<UpdateProfileData>
 
     // ================= 商品与门店模块 =================
     @GET("api/categories")
@@ -49,13 +49,13 @@ interface StoreApiService {
 
     // ================= 购物车模块 =================
     @GET("api/cart/list")
-    suspend fun getCartList(@Query("userId") userId: Int): BaseResponse<List<CartItem>>
+    suspend fun getCartList(): BaseResponse<List<CartItem>>
 
     @PUT("api/cart/update")
     suspend fun updateCartQuantity(@Body request: CartUpdateReq): BaseResponse<Any>
 
-    @DELETE("api/cart/remove")
-    suspend fun removeCartItem(@Query("cartId") cartId: Int): BaseResponse<Any>
+    @DELETE("api/cart/delete/{cartId}")
+    suspend fun removeCartItem(@Path("cartId") cartId: Int): BaseResponse<Any>
 
     @POST("api/cart/add")
     suspend fun addToCart(@Body request: CartAddReq): BaseResponse<Any>
@@ -65,7 +65,7 @@ interface StoreApiService {
     suspend fun submitOrder(@Body request: OrderModels.OrderSubmitReq): BaseResponse<String>
 
     @GET("api/order/list")
-    suspend fun getOrderList(@Query("userId") userId: Int): BaseResponse<List<OrderModels.OrderVO>>
+    suspend fun getOrderList(): BaseResponse<List<OrderModels.OrderVO>>
 
     // 【无需加 Header 参数，ApiClient 拦截器会自动加】
     @GET("api/home/index")

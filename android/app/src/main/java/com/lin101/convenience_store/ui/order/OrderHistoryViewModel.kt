@@ -30,14 +30,17 @@ class OrderHistoryViewModel(application: Application) : AndroidViewModel(applica
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                // 从本地读取当前用户的 ID
                 val prefs = context.dataStore.data.first()
-                val userId = prefs[UserPreferences.USER_ID_KEY] ?: return@launch
+                if (prefs[UserPreferences.USER_ID_KEY] == null) {
+                    _orders.value = emptyList()
+                    return@launch
+                }
 
-                // 拿着 ID 去后端请求它的历史订单
-                val response = ApiClient.storeService.getOrderList(userId)
+                val response = ApiClient.storeService.getOrderList()
                 if (response.code == 200 && response.data != null) {
-                    _orders.value = response.data
+                    _orders.value = response.data.map { order ->
+                        order.copy(status = order.status?.lowercase())
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

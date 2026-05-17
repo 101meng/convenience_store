@@ -1,6 +1,5 @@
 package com.lin101.store.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -9,6 +8,7 @@ import com.lin101.store.mapper.ProductMapper;
 import com.lin101.store.service.AiService;
 import com.lin101.store.vo.ProductVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -26,8 +26,14 @@ public class AiServiceImpl implements AiService {
     @Autowired
     private ProductMapper productMapper;
 
-    private static final String API_URL = "https://api.longcat.chat/openai/v1/chat/completions";
-    private static final String API_KEY = "ak_2nY9d21Xa7PM9Wd5HD4vH48q6fY8g";
+    @Value("${ai.longcat.api-url:https://api.longcat.chat/openai/v1/chat/completions}")
+    private String apiUrl;
+
+    @Value("${ai.longcat.api-key:}")
+    private String apiKey;
+
+    @Value("${ai.longcat.model:LongCat-Flash-Chat}")
+    private String aiModel;
 
     @Override
     public Map<String, Object> generateSmartCombo(String prompt, Integer storeId) {
@@ -178,8 +184,12 @@ public class AiServiceImpl implements AiService {
 
 
     private String callLongCatApi(String systemPrompt, String userPrompt) throws Exception {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalStateException("LONGCAT_API_KEY is not configured");
+        }
+
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "LongCat-Flash-Chat");
+        requestBody.put("model", aiModel);
         requestBody.put("temperature", 0.7);
 
         List<Map<String, String>> messages = new ArrayList<>();
@@ -198,10 +208,10 @@ public class AiServiceImpl implements AiService {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + API_KEY);
+        headers.set("Authorization", "Bearer " + apiKey);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(API_URL, entity, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readTree(response.getBody());

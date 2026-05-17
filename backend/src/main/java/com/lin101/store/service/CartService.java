@@ -12,7 +12,7 @@ public interface CartService extends IService<Cart> {
 
     List<CartVO> getUserCartList(Integer userId, Integer storeId);
 
-    void updateCartQuantity(Integer cartId, Integer quantity);
+    void updateCartQuantity(Integer userId, Integer cartId, Integer quantity);
 
-    void removeCartItem(Integer cartId);
+    void removeCartItem(Integer userId, Integer cartId);
 }

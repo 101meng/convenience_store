@@ -96,7 +96,7 @@ class AiPlannerViewModel(application: Application) : AndroidViewModel(applicatio
 
                 // 遍历商品，逐个调用你现有的加入购物车接口
                 for (product in products) {
-                    val req = CartAddReq(userId, product.productId, 1)
+                    val req = CartAddReq(product.productId, 1)
                     ApiClient.storeService.addToCart(req)
                 }
 

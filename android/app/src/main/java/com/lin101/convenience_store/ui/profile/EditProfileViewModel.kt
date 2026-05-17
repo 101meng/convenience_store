@@ -77,7 +77,6 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
             try {
                 // 1. 组装请求参数（直接使用从 DataStore 里读取出来的 phone）
                 val request = UpdateProfileRequest(
-                    phone = _phone.value,
                     nickname = _nickname.value,
                     address = _address.value
                 )
@@ -87,10 +86,11 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
 
                 // 3. 判断后端返回的状态码
                 if (response.code == 200) {
+                    val updatedUser = response.data?.user
                     // 后端数据库修改成功后，再同步更新手机本地的 DataStore 缓存
                     context.dataStore.edit { prefs ->
-                        prefs[UserPreferences.USER_NICKNAME_KEY] = _nickname.value
-                        prefs[UserPreferences.USER_ADDRESS_KEY] = _address.value
+                        prefs[UserPreferences.USER_NICKNAME_KEY] = updatedUser?.nickname ?: _nickname.value
+                        prefs[UserPreferences.USER_ADDRESS_KEY] = updatedUser?.address ?: ""
                     }
 
                     _uiEvent.emit("资料保存成功")

@@ -77,8 +77,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val prefs = context.dataStore.data.first()
-                val userId = prefs[UserPreferences.USER_ID_KEY] ?: return@launch
-                val response = ApiClient.storeService.getCartList(userId)
+                if (prefs[UserPreferences.USER_ID_KEY] == null) return@launch
+                val response = ApiClient.storeService.getCartList()
                 if (response.code == 200 && response.data != null) {
                     val total = response.data.sumOf { it.quantity }
                     _cartItemCount.value = total

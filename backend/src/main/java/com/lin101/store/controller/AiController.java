@@ -39,7 +39,6 @@ public class AiController {
         }
     }
 
-    // 营养分析方法无需修改，因为购物车本身已带门店隔离
     @PostMapping("/dietitian")
     public Result<Map<String, Object>> analyzeDiet(@RequestBody Map<String, Object> request) {
         try {

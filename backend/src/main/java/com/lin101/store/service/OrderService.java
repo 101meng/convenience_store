@@ -12,7 +12,11 @@ import java.util.List;
  */
 public interface OrderService extends IService<Order> {
 
-    String submitOrder(OrderSubmitReq req);
+    String submitOrder(Integer userId, Integer storeId, OrderSubmitReq req);
 
     List<OrderVO> getUserOrders(Integer userId);
+
+    void payOrder(Integer userId, Integer orderId);
+
+    void receiveOrder(Integer userId, Integer orderId);
 }

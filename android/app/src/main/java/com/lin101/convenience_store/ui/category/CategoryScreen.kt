@@ -46,11 +46,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.SubcomposeAsyncImage
 import com.lin101.convenience_store.data.model.Category
 import com.lin101.convenience_store.data.model.Product
 
@@ -262,35 +264,69 @@ private fun CategoryGridCard(product: Product, onClick: () -> Unit) {
         modifier = Modifier
             .aspectRatio(1f)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFE5E7EB))
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
+            .background(Color.White)
+            .clickable(onClick = onClick)
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.fillMaxSize()
         ) {
-            // 此处暂时使用统一占位图标，后续接入 Coil 加载 product.imageUrl
-            Icon(
-                Icons.Default.Fastfood,
-                contentDescription = null,
-                tint = BrandGreen,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = product.name,
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp,
-                maxLines = 2,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            Text(
-                text = "$${product.price}",
-                color = BrandGreen,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 12.sp
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(104.dp)
+                    .background(Color(0xFFE5E7EB)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (product.imageUrl.isNullOrBlank()) {
+                    CategoryCardImageFallback()
+                } else {
+                    SubcomposeAsyncImage(
+                        model = product.imageUrl,
+                        contentDescription = product.name,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        loading = { CategoryCardImageFallback() },
+                        error = { CategoryCardImageFallback() }
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 10.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = product.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp,
+                    maxLines = 2,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "$${product.price}",
+                    color = BrandGreen,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 12.sp
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun CategoryCardImageFallback() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            Icons.Default.Fastfood,
+            contentDescription = null,
+            tint = BrandGreen,
+            modifier = Modifier.size(32.dp)
+        )
     }
 }

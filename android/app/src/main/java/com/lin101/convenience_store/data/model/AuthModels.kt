@@ -32,14 +32,11 @@ data class LoginResponse(
 
 // 更新资料的请求体
 data class UpdateProfileRequest(
-    val phone: String,
     val nickname: String,
     val address: String
 )
 
-// 更新资料的响应体
-data class UpdateProfileResponse(
-    val code: Int,
-    val message: String,
+// 对应后端 data.user 的包装结构
+data class UpdateProfileData(
     val user: User?
 )

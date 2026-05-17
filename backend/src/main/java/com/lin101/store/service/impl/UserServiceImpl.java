@@ -1,6 +1,5 @@
 package com.lin101.store.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lin101.store.entity.User;
 import com.lin101.store.mapper.UserMapper;
@@ -12,28 +11,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * {@link com.lin101.store.service.UserService} 实现：除 BaseMapper CRUD 外，提供按手机号的资料更新。
- * <p>客户端需传手机号以关联会话用户；昵称非空才覆盖，地址字段允许传空串清空。</p>
+ * {@link com.lin101.store.service.UserService} 实现：会话用户由 JWT 解析，昵称非空才覆盖，地址字段允许传空串清空。
  */
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     /**
-     * @param phone    必填，与 {@code users.phone} 唯一匹配
+     * @param userId   必填，来自 JWT
      * @param nickname 可选，trim 后非空才更新
      * @param address  可选，{@code != null} 即写入（含空字符串表示清空）
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> updateProfile(String phone, String nickname, String address) {
+    public Map<String, Object> updateProfile(Integer userId, String nickname, String address) {
 
-        if (phone == null || phone.trim().isEmpty()) {
-            throw new IllegalArgumentException("手机号不能为空，无法定位用户");
+        if (userId == null) {
+            throw new IllegalArgumentException("缺少登录态，无法定位用户");
         }
 
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("phone", phone);
-        User user = this.getOne(queryWrapper);
+        User user = this.getById(userId);
 
         if (user == null) {
             throw new IllegalArgumentException("该用户不存在");
@@ -54,7 +50,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (isUpdated) {
             this.updateById(user);
         }
-        // isUpdated==false：例如只传了空昵称且 address 为 null，不落库但仍返回内存中的 user
 
         Map<String, Object> result = new HashMap<>();
         result.put("user", user);

@@ -79,7 +79,7 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
                 val currentStoreId = _storeId.value ?: 1
                 Log.d("CartViewModel", "fetchCartList: userId=$userId, storeId=$currentStoreId")
 
-                val response = ApiClient.storeService.getCartList(userId)
+                val response = ApiClient.storeService.getCartList()
                 if (response.code == 200 && response.data != null) {
                     _cartItems.value = response.data
                     calculateTotal()

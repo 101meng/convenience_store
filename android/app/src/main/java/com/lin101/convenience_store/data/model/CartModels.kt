@@ -34,7 +34,6 @@ data class CartUpdateReq(
  * 对应添加购物车的请求体
  */
 data class CartAddReq(
-    val userId: Int,
     val productId: Int,
     val quantity: Int
 )

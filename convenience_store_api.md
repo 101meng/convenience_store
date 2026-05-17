@@ -162,19 +162,24 @@ json
 
 ### 3. 购物车接口
 
+> 以下接口均需携带用户 JWT；与门店强相关的接口还需传 `X-Store-Id` 请求头。
+
 #### 3.1 加入购物车
 
 - **接口名称**：添加商品到购物车
 - **接口路径**：`/api/cart/add`
 - **请求方式**：`POST`
-- **请求头**：`Content-Type: application/json`
+- **请求头**：
+
+  - `Content-Type: application/json`
+  - `Authorization: Bearer <JWT>`
+  - `X-Store-Id: 1`
 - **请求参数 (Body)**：
 
 json
 
 ```
 {
-  "userId": 1,
   "productId": 2,
   "quantity": 1
 }
@@ -197,7 +202,10 @@ json
 - **接口名称**：用户购物车查询
 - **接口路径**：`/api/cart/list`
 - **请求方式**：`GET`
-- **请求参数 (Query)**：`userId`（用户 ID）
+- **请求头**：
+
+  - `Authorization: Bearer <JWT>`
+  - `X-Store-Id: 1`
 - **成功响应 (JSON)**：
 
 json
@@ -209,6 +217,7 @@ json
   "data": [
     {
       "cartId": 1,
+      "userId": 1,
       "productId": 2,
       "name": "Artisanal Cold Brew",
       "price": 4.50,
@@ -224,7 +233,10 @@ json
 - **接口名称**：修改购物车商品数量
 - **接口路径**：`/api/cart/update`
 - **请求方式**：`PUT`
-- **请求头**：`Content-Type: application/json`
+- **请求头**：
+
+  - `Content-Type: application/json`
+  - `Authorization: Bearer <JWT>`
 - **请求参数 (Body)**：
 
 json
@@ -251,9 +263,10 @@ json
 #### 3.4 移除购物车商品
 
 - **接口名称**：删除购物车商品
-- **接口路径**：`/api/cart/remove`
+- **接口路径**：`/api/cart/delete/{cartId}`
 - **请求方式**：`DELETE`
-- **请求参数 (Query)**：`cartId`（购物车项 ID）
+- **请求头**：`Authorization: Bearer <JWT>`
+- **请求参数 (Path)**：`cartId`（购物车项 ID）
 - **成功响应 (JSON)**：
 
 json
@@ -268,22 +281,26 @@ json
 
 ### 4. 订单接口
 
+> 以下接口均需携带 `Authorization: Bearer <JWT>`；提交订单额外依赖 `X-Store-Id` 指定当前门店。
+
 #### 4.1 提交订单
 
 - **接口名称**：创建订单
 - **接口路径**：`/api/order/submit`
 - **请求方式**：`POST`
-- **请求头**：`Content-Type: application/json`
+- **请求头**：
+
+  - `Content-Type: application/json`
+  - `Authorization: Bearer <JWT>`
+  - `X-Store-Id: 1`
 - **请求参数 (Body)**：
 
 json
 
 ```
 {
-  "userId": 1,
-  "storeId": null,
   "orderType": "shipping",
-  "paymentMethod": "WeChat Pay",
+  "paymentMethod": "wechat",
   "deliveryAddress": "Central Park West, NY 10025",
   "deliveryFee": 1.50
 }
@@ -307,8 +324,8 @@ json
 
 ```
 {
-  "code": 500,
-  "message": "购物车为空",
+  "code": 400,
+  "message": "购物车为空，无法下单",
   "data": null
 }
 ```
@@ -318,7 +335,7 @@ json
 - **接口名称**：用户订单查询
 - **接口路径**：`/api/order/list`
 - **请求方式**：`GET`
-- **请求参数 (Query)**：`userId`（用户 ID）
+- **请求头**：`Authorization: Bearer <JWT>`
 - **成功响应 (JSON)**：
 
 json
@@ -332,18 +349,59 @@ json
       "orderId": 1,
       "orderSn": "ORD-2023-084",
       "actualAmount": 32.40,
-      "status": "COMPLETED",
+      "status": "completed",
       "orderType": "shipping",
       "createdAt": "15 Oct 2026, 10:30 AM",
+      "deliveryAddress": "Central Park West, NY 10025",
       "items": [
         {
           "productId": 2,
+          "name": "Artisanal Cold Brew",
           "quantity": 1,
-          "imageUrl": "coffee.jpg"
+          "imageUrl": "coffee.jpg",
+          "priceAtTime": 4.50
         }
       ]
     }
   ]
+}
+```
+
+#### 4.3 支付订单
+
+- **接口名称**：支付订单
+- **接口路径**：`/api/order/pay`
+- **请求方式**：`POST`
+- **请求头**：`Authorization: Bearer <JWT>`
+- **请求参数 (Query)**：`orderId`（订单 ID）
+- **成功响应 (JSON)**：
+
+json
+
+```
+{
+  "code": 200,
+  "message": "订单支付成功",
+  "data": null
+}
+```
+
+#### 4.4 确认收货
+
+- **接口名称**：确认收货
+- **接口路径**：`/api/order/receive`
+- **请求方式**：`POST`
+- **请求头**：`Authorization: Bearer <JWT>`
+- **请求参数 (Query)**：`orderId`（订单 ID）
+- **成功响应 (JSON)**：
+
+json
+
+```
+{
+  "code": 200,
+  "message": "订单已确认收货",
+  "data": null
 }
 ```
 
@@ -354,14 +412,16 @@ json
 - **接口名称**：修改用户信息
 - **接口路径**：`/api/user/update`
 - **请求方式**：`POST`
-- **请求头**：`Content-Type: application/json`
+- **请求头**：
+
+  - `Content-Type: application/json`
+  - `Authorization: Bearer <JWT>`
 - **请求参数 (Body)**：
 
 json
 
 ```
 {
-  "phone": "15839816471",
   "nickname": "Alex Johnson",
   "address": "123 Convenience St, Apt 4B, Metro City, 10001"
 }
@@ -376,9 +436,14 @@ json
   "code": 200,
   "message": "个人资料更新成功",
   "data": {
-    "phone": "15839816471",
-    "nickname": "Alex Johnson",
-    "address": "123 Convenience St, Apt 4B, Metro City, 10001"
+    "user": {
+      "userId": 1,
+      "phone": "15839816471",
+      "nickname": "Alex Johnson",
+      "avatarUrl": "https://ui-avatars.com/api/?name=A&background=random",
+      "balance": 0.0,
+      "address": "123 Convenience St, Apt 4B, Metro City, 10001"
+    }
   }
 }
 ```

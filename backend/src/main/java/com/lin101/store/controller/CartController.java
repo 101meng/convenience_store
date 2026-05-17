@@ -2,13 +2,15 @@ package com.lin101.store.controller;
 
 import com.lin101.store.common.Result;
 import com.lin101.store.common.ResultCode;
+import com.lin101.store.interceptor.JwtInterceptor;
 import com.lin101.store.service.CartService;
+import com.lin101.store.vo.CartAddReq;
+import com.lin101.store.vo.CartUpdateReq;
 import com.lin101.store.vo.CartVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -19,16 +21,14 @@ public class CartController {
 
     @PostMapping("/add")
     public Result<Void> addToCart(
-            @RequestBody Map<String, Integer> requestData,
+            @RequestAttribute(JwtInterceptor.ATTR_USER_ID) Integer userId,
+            @RequestBody CartAddReq requestData,
             @RequestHeader(value = "X-Store-Id", defaultValue = "1") Integer storeId) {
         try {
-            Integer userId = requestData.get("userId");
-            Integer productId = requestData.get("productId");
-            Integer quantity = requestData.get("quantity");
-
-            cartService.addToCart(userId, productId, quantity, storeId);
-
+            cartService.addToCart(userId, requestData.getProductId(), requestData.getQuantity(), storeId);
             return Result.success(ResultCode.CART_ADD_SUCCESS);
+        } catch (IllegalArgumentException e) {
+            return Result.failed(ResultCode.VALIDATE_FAILED);
         } catch (Exception e) {
             return Result.failed(ResultCode.CART_ADD_FAILED);
         }
@@ -36,36 +36,47 @@ public class CartController {
 
     @GetMapping("/list")
     public Result<List<CartVO>> getCartList(
-            @RequestParam("userId") Integer userId,
+            @RequestAttribute(JwtInterceptor.ATTR_USER_ID) Integer userId,
             @RequestHeader(value = "X-Store-Id", defaultValue = "1") Integer storeId) {
         try {
             List<CartVO> cartList = cartService.getUserCartList(userId, storeId);
             return Result.success(ResultCode.SUCCESS, cartList);
+        } catch (IllegalArgumentException e) {
+            return Result.failed(ResultCode.VALIDATE_FAILED);
         } catch (Exception e) {
-            e.printStackTrace();  // 打印完整堆栈
             return Result.failed(ResultCode.CART_LIST_FAILED);
         }
     }
 
     @PutMapping("/update")
-    public Result<Void> updateCartItem(@RequestBody Map<String, Integer> requestData) {
+    public Result<Void> updateCartItem(
+            @RequestAttribute(JwtInterceptor.ATTR_USER_ID) Integer userId,
+            @RequestBody CartUpdateReq requestData) {
         try {
-            Integer cartId = requestData.get("cartId");
-            Integer quantity = requestData.get("quantity");
-            cartService.updateCartQuantity(cartId, quantity);
-            return Result.success(ResultCode.SUCCESS);
+            cartService.updateCartQuantity(userId, requestData.getCartId(), requestData.getQuantity());
+            return Result.success(ResultCode.CART_UPDATE_SUCCESS);
+        } catch (IllegalArgumentException e) {
+            return Result.failed(ResultCode.VALIDATE_FAILED);
+        } catch (SecurityException e) {
+            return Result.failed(ResultCode.FORBIDDEN);
         } catch (Exception e) {
             return Result.failed(ResultCode.CART_UPDATE_FAILED);
         }
     }
 
     @DeleteMapping("/delete/{cartId}")
-    public Result<Void> removeCartItem(@PathVariable Integer cartId) {
+    public Result<Void> removeCartItem(
+            @RequestAttribute(JwtInterceptor.ATTR_USER_ID) Integer userId,
+            @PathVariable Integer cartId) {
         try {
-            cartService.removeCartItem(cartId);
-            return Result.success(ResultCode.SUCCESS);
+            cartService.removeCartItem(userId, cartId);
+            return Result.success(ResultCode.CART_REMOVE_SUCCESS);
+        } catch (IllegalArgumentException e) {
+            return Result.failed(ResultCode.VALIDATE_FAILED);
+        } catch (SecurityException e) {
+            return Result.failed(ResultCode.FORBIDDEN);
         } catch (Exception e) {
-            return Result.failed(ResultCode.CART_DELETE_FAILED);
+            return Result.failed(ResultCode.CART_REMOVE_FAILED);
         }
     }
 }
